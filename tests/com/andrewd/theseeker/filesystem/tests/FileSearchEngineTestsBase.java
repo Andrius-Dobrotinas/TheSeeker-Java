@@ -12,7 +12,7 @@ import java.nio.file.Paths;
  * Base class for tests with file system. Takes care of creation
  * and deletion of temp directories and files
  */
-class FileSearchEngineTestsBase {
+public class FileSearchEngineTestsBase {
     protected static Path locationRoot;
     protected static File locationRootPath;
     protected static File uniqueFile1_tmp;
