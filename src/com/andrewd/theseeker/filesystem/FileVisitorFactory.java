@@ -1,5 +1,6 @@
 package com.andrewd.theseeker.filesystem;
 
+import java.io.IOException;
 import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
@@ -10,5 +11,6 @@ import java.util.function.Consumer;
  * invokes the supplied consumer for each matching file.
  */
 public interface FileVisitorFactory {
-    FileVisitor<Path> createVisitor(PathMatcher matcher, Consumer<Object> foundItemConsumer);
+    FileVisitor<Path> createVisitor(PathMatcher matcher, Consumer<Object> foundItemConsumer,
+                                    Consumer<IOException> ioExceptionConsumer);
 }

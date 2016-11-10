@@ -2,6 +2,7 @@ package com.andrewd.theseeker.filesystem.tests;
 
 import com.andrewd.theseeker.ItemFoundEventListener;
 import com.andrewd.theseeker.filesystem.FileSearchEngine;
+import com.andrewd.theseeker.filesystem.FileTreeWalker;
 import com.andrewd.theseeker.filesystem.PlainFileVisitor;
 
 import org.junit.Assert;
@@ -10,9 +11,12 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class FileSearchEngineTests extends FileSearchEngineTestsBase {
 
@@ -21,7 +25,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
     @Test
     public void MustFindOneFileWhoseNameMatchesExactly() throws IOException {
         List<Path> results = new ArrayList<>();
-        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new);
+        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree);
         searchEngine.addItemFoundEventListener(item -> results.add((Path)item));
 
         // Run
@@ -35,7 +39,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
 
     @Test
     public void MustInvokeSingleItemFoundCallback_ForSingleItem() throws IOException {
-        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new);
+        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree);
         ItemFoundEventListener itemFoundCallbackMock = Mockito.mock(ItemFoundEventListener.class);
         searchEngine.addItemFoundEventListener(itemFoundCallbackMock);
 
@@ -48,7 +52,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
 
     @Test
     public void MustInvokeOneItemFoundCallback_ForSeveralItems() throws IOException {
-        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new);
+        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree);
         ItemFoundEventListener itemFoundCallbackMock = Mockito.mock(ItemFoundEventListener.class);
         searchEngine.addItemFoundEventListener(itemFoundCallbackMock);
 
@@ -61,7 +65,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
 
     @Test
     public void MustInvokeTwoItemFoundCallbacks_ForSingleItem() throws IOException {
-        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new);
+        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree);
         ItemFoundEventListener itemFoundCallbackMock = Mockito.mock(ItemFoundEventListener.class);
         ItemFoundEventListener itemFoundCallbackMock2 = Mockito.mock(ItemFoundEventListener.class);
         searchEngine.addItemFoundEventListener(itemFoundCallbackMock);
@@ -77,7 +81,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
 
     @Test
     public void MustInvokeTwoItemFoundCallbacks_ForSeveralItems() throws IOException {
-        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new);
+        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree);
         ItemFoundEventListener itemFoundCallbackMock = Mockito.mock(ItemFoundEventListener.class);
         ItemFoundEventListener itemFoundCallbackMock2 = Mockito.mock(ItemFoundEventListener.class);
         searchEngine.addItemFoundEventListener(itemFoundCallbackMock);
@@ -89,5 +93,50 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
         // Verify -- There are four files that end with "tmp"
         Mockito.verify(itemFoundCallbackMock, Mockito.times(4)).onItemFound(Matchers.any());
         Mockito.verify(itemFoundCallbackMock2, Mockito.times(4)).onItemFound(Matchers.any());
+    }
+
+    @Test
+    public void MustInvokeOneIOExceptionCallbackOnIOException() throws IOException {
+        FileTreeWalker walkerTexasRangerMock = Mockito.mock(FileTreeWalker.class);
+        Mockito.doAnswer(x ->
+                // Extract FileVisitor (the second argument) from the method and simply return exception
+                ((FileVisitor<Path>)x.getArguments()[1]).visitFileFailed(file1_tmp.toPath(),
+                        new IOException("File could not be access")))
+                .when(walkerTexasRangerMock).walkFileTree(Matchers.any(Path.class), Matchers.<FileVisitor<Path>>any());
+
+        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, walkerTexasRangerMock);
+
+        Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
+        searchEngine.addIOExceptionEventListener(ioExceptionConsumerMock);
+
+        // Run
+        searchEngine.search("", "");
+
+        // Verify
+        Mockito.verify(ioExceptionConsumerMock, Mockito.times(1)).accept(Matchers.any(IOException.class));
+    }
+
+    @Test
+    public void MustInvokeTwoIOExceptionCallbacksOnIOException() throws IOException {
+        FileTreeWalker walkerTexasRangerMock = Mockito.mock(FileTreeWalker.class);
+        Mockito.doAnswer(x ->
+                // Extract FileVisitor (the second argument) from the method and simply return exception
+                ((FileVisitor<Path>)x.getArguments()[1]).visitFileFailed(file1_tmp.toPath(),
+                        new IOException("File could not be access")))
+                .when(walkerTexasRangerMock).walkFileTree(Matchers.any(Path.class), Matchers.<FileVisitor<Path>>any());
+
+        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, walkerTexasRangerMock);
+
+        Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
+        Consumer<IOException> ioExceptionConsumerMock2 = Mockito.mock(Consumer.class);
+        searchEngine.addIOExceptionEventListener(ioExceptionConsumerMock);
+        searchEngine.addIOExceptionEventListener(ioExceptionConsumerMock2);
+
+        // Run
+        searchEngine.search("", "");
+
+        // Verify
+        Mockito.verify(ioExceptionConsumerMock, Mockito.times(1)).accept(Matchers.any(IOException.class));
+        Mockito.verify(ioExceptionConsumerMock2, Mockito.times(1)).accept(Matchers.any(IOException.class));
     }
 }

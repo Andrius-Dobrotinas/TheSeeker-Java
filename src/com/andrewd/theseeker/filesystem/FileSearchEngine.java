@@ -1,21 +1,27 @@
 package com.andrewd.theseeker.filesystem;
 
+import com.andrewd.theseeker.ItemFoundEventListener;
 import com.andrewd.theseeker.SearchEngineBase;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Created by qwe on 11/7/2016.
  */
 public class FileSearchEngine extends SearchEngineBase {
     private FileVisitorFactory fileVisitorFactory;
+    private FileTreeWalker fileTreeWalker;
+    private List<Consumer<IOException>> ioExceptionListeners = new ArrayList<>();
 
-    public FileSearchEngine(FileVisitorFactory fileVisitorFactory) {
+    public FileSearchEngine(FileVisitorFactory fileVisitorFactory, FileTreeWalker fileTreeWalker) {
         this.fileVisitorFactory = fileVisitorFactory;
+        this.fileTreeWalker = fileTreeWalker;
     }
 
     @Override
@@ -24,11 +30,23 @@ public class FileSearchEngine extends SearchEngineBase {
         PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
 
         try {
-            Files.walkFileTree(Paths.get(location),
-                    fileVisitorFactory.createVisitor(matcher, item -> super.onItemFound(item)));
+            fileTreeWalker.walkFileTree(Paths.get(location),
+                    fileVisitorFactory.createVisitor(matcher,
+                            item -> super.onItemFound(item),
+                            this::onIOException));
         } catch (IOException e) {
             e.printStackTrace();
             // TODO: handle exception
+        }
+    }
+
+    public void addIOExceptionEventListener(Consumer<IOException> listener) {
+        ioExceptionListeners.add(listener);
+    }
+
+    protected void onIOException(IOException exc) {
+        for(Consumer<IOException> listener : ioExceptionListeners) {
+            listener.accept(exc);
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.andrewd.theseeker.filesystem.tests;
 
-import com.andrewd.theseeker.filesystem.PlainFileVisitor;
+import com.andrewd.theseeker.filesystem.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Created by qwe on 11/8/2016.
@@ -24,9 +25,10 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
         Mockito.when(matcherMock.matches(Matchers.any(Path.class)))
                 // Returns True if file name ends with "rar"
                 .thenAnswer(x -> ((Path)x.getArguments()[0]).getFileName().toString().endsWith("rar"));
+        Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
 
         FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
-                x -> results.add((Path)x));
+                x -> results.add((Path)x), ioExceptionConsumerMock);
 
         // Run
         Files.walkFileTree(locationRoot, fileVisitor);
@@ -45,9 +47,10 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
         Mockito.when(matcherMock.matches(Matchers.any(Path.class)))
                 // Returns True if file name ends with "asd"
                 .thenAnswer(x -> ((Path)x.getArguments()[0]).getFileName().toString().endsWith("asd"));
+        Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
 
         FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
-                x -> results.add((Path)x));
+                x -> results.add((Path)x), ioExceptionConsumerMock);
 
         // Run
         Files.walkFileTree(locationRoot, fileVisitor);
@@ -66,9 +69,10 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
         Mockito.when(matcherMock.matches(Matchers.any(Path.class)))
                 // There are two files with the same name. One of them is referenced by "subDir__file1_tmp__copy"
                 .thenAnswer(x -> ((Path)x.getArguments()[0]).getFileName().toString().equals(subDir__file1_tmp__copy.getName()));
+        Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
 
         FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
-                x -> results.add((Path)x));
+                x -> results.add((Path)x), ioExceptionConsumerMock);
 
         // Run
         Files.walkFileTree(locationRoot, fileVisitor);
@@ -91,9 +95,10 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
         Mockito.when(matcherMock.matches(Matchers.any(Path.class)))
                 // Returns True if file name ends with "rar"
                 .thenAnswer(x -> ((Path)x.getArguments()[0]).getFileName().toString().endsWith("rar"));
+        Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
 
         FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
-                x -> results.add((Path)x));
+                x -> results.add((Path)x), ioExceptionConsumerMock);
 
         // Run
         Files.walkFileTree(locationRoot, fileVisitor);
@@ -113,9 +118,10 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
         PathMatcher matcherMock = Mockito.mock(PathMatcher.class);
         Mockito.when(matcherMock.matches(Matchers.any(Path.class)))
                 .thenAnswer(x -> ((Path)x.getArguments()[0]).getFileName().toString().endsWith("tmp"));
+        Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
 
         FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
-                x -> results.add((Path)x));
+                x -> results.add((Path)x), ioExceptionConsumerMock);
 
         // Run
         Files.walkFileTree(locationRoot, fileVisitor);
@@ -135,6 +141,49 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
                 results.stream().anyMatch(x -> x.toString().equals(subDir__file1_tmp__copy.toString())));
     }
 
-    // TODO: test exceptions
+    @Test
+    public void MustInvokeIOExceptionCallback_On_VisitFileFailed() throws IOException {
+        PathMatcher matcherMock = Mockito.mock(PathMatcher.class);
+        Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
+        Consumer<Object> itemFoundCounsumer = Mockito.mock(Consumer.class);
+
+        FileTreeWalker walkerTexasRangerMock = Mockito.mock(FileTreeWalker.class);
+        Mockito.doAnswer(x ->
+                ((FileVisitor<Path>)x.getArguments()[1]).visitFileFailed(file1_tmp.toPath(),
+                        new IOException("File could not be access")))
+                .when(walkerTexasRangerMock).walkFileTree(Matchers.any(Path.class), Matchers.<FileVisitor<Path>>any());
+
+
+        FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock, itemFoundCounsumer, ioExceptionConsumerMock);
+
+        // Run
+        walkerTexasRangerMock.walkFileTree(Paths.get(""), fileVisitor);
+
+        // Verify
+        Mockito.verify(ioExceptionConsumerMock, Mockito.times(1)).accept(Matchers.any(IOException.class));
+    }
+
+    @Test
+    public void MustInvokeIOExceptionCallback_On_postVisitDirectory() throws IOException {
+        PathMatcher matcherMock = Mockito.mock(PathMatcher.class);
+        Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
+        Consumer<Object> itemFoundCounsumer = Mockito.mock(Consumer.class);
+
+        FileTreeWalker walkerTexasRangerMock = Mockito.mock(FileTreeWalker.class);
+        Mockito.doAnswer(x ->
+                ((FileVisitor<Path>)x.getArguments()[1]).postVisitDirectory(file1_tmp.toPath(),
+                        new IOException("File could not be access")))
+                .when(walkerTexasRangerMock).walkFileTree(Matchers.any(Path.class), Matchers.<FileVisitor<Path>>any());
+
+
+        FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock, itemFoundCounsumer, ioExceptionConsumerMock);
+
+        // Run
+        walkerTexasRangerMock.walkFileTree(Paths.get(""), fileVisitor);
+
+        // Verify
+        Mockito.verify(ioExceptionConsumerMock, Mockito.times(1)).accept(Matchers.any(IOException.class));
+    }
+
     // TODO: test status updates (search location)
 }
