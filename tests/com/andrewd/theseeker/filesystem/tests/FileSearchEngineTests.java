@@ -143,8 +143,6 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
 
     @Test
     public void MustPushStartAndFinishStatusUpdates() throws IOException {
-        List<Path> results = new ArrayList<>();
-
         FileTreeWalker walkerTexasRangerMock = Mockito.mock(FileTreeWalker.class);
         FileVisitorFactory visitorFactoryMock = Mockito.mock(FileVisitorFactory.class);
         FileSearchEngine searchEngine = new FileSearchEngine(visitorFactoryMock, walkerTexasRangerMock);

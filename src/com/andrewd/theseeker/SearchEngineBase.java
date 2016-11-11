@@ -11,7 +11,13 @@ public abstract class SearchEngineBase {
     private List<ItemFoundEventListener> itemFoundListeners = new ArrayList<>();
     private List<Consumer<Object>> statusUpdateEventListenrs = new ArrayList<>();
 
-    public abstract void search(String location, String pattern);
+    public final void search(String location, String pattern) {
+        onStatusUpdate("STARTED");
+        performSearch(location, pattern);
+        onStatusUpdate("FINISHED");
+    }
+
+    protected abstract void performSearch(String location, String pattern);
 
     public void addItemFoundEventListener(ItemFoundEventListener listener) {
         itemFoundListeners.add(listener);

@@ -24,18 +24,16 @@ public class FileSearchEngine extends SearchEngineBase {
     }
 
     @Override
-    public void search(String location, String pattern) {
+    public void performSearch(String location, String pattern) {
         // TODO get this PathMatcher instantiation in order
         PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
 
         try {
-            onStatusUpdate("STARTED");
             fileTreeWalker.walkFileTree(Paths.get(location),
                     fileVisitorFactory.createVisitor(matcher,
                             item -> super.onItemFound(item),
                             status -> super.onStatusUpdate(status),
                             this::onIOException));
-            onStatusUpdate("FINISHED");
         } catch (IOException e) {
             e.printStackTrace();
             // TODO: handle exception
