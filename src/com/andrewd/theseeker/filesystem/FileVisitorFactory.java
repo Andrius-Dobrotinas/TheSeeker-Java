@@ -12,5 +12,6 @@ import java.util.function.Consumer;
  */
 public interface FileVisitorFactory {
     FileVisitor<Path> createVisitor(PathMatcher matcher, Consumer<Object> foundItemConsumer,
+                                    Consumer<Object> onVisitDirectory,
                                     Consumer<IOException> ioExceptionConsumer);
 }

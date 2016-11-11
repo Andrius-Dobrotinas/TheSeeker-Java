@@ -1,6 +1,5 @@
 package com.andrewd.theseeker.filesystem;
 
-import com.andrewd.theseeker.ItemFoundEventListener;
 import com.andrewd.theseeker.SearchEngineBase;
 
 import java.io.IOException;
@@ -30,13 +29,17 @@ public class FileSearchEngine extends SearchEngineBase {
         PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
 
         try {
+            onStatusUpdate("STARTED");
             fileTreeWalker.walkFileTree(Paths.get(location),
                     fileVisitorFactory.createVisitor(matcher,
                             item -> super.onItemFound(item),
+                            status -> super.onStatusUpdate(status),
                             this::onIOException));
+            onStatusUpdate("FINISHED");
         } catch (IOException e) {
             e.printStackTrace();
             // TODO: handle exception
+            // TODO: probably push status update?
         }
     }
 

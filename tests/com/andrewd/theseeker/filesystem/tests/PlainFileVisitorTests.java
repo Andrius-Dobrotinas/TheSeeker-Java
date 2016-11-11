@@ -26,9 +26,10 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
                 // Returns True if file name ends with "rar"
                 .thenAnswer(x -> ((Path)x.getArguments()[0]).getFileName().toString().endsWith("rar"));
         Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
+        Consumer<Object> statusConsumerMock = Mockito.mock(Consumer.class);
 
         FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
-                x -> results.add((Path)x), ioExceptionConsumerMock);
+                x -> results.add((Path)x), statusConsumerMock, ioExceptionConsumerMock);
 
         // Run
         Files.walkFileTree(locationRoot, fileVisitor);
@@ -48,9 +49,10 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
                 // Returns True if file name ends with "asd"
                 .thenAnswer(x -> ((Path)x.getArguments()[0]).getFileName().toString().endsWith("asd"));
         Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
+        Consumer<Object> statusConsumerMock = Mockito.mock(Consumer.class);
 
         FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
-                x -> results.add((Path)x), ioExceptionConsumerMock);
+                x -> results.add((Path)x), statusConsumerMock, ioExceptionConsumerMock);
 
         // Run
         Files.walkFileTree(locationRoot, fileVisitor);
@@ -70,9 +72,10 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
                 // There are two files with the same name. One of them is referenced by "subDir__file1_tmp__copy"
                 .thenAnswer(x -> ((Path)x.getArguments()[0]).getFileName().toString().equals(subDir__file1_tmp__copy.getName()));
         Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
+        Consumer<Object> statusConsumerMock = Mockito.mock(Consumer.class);
 
         FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
-                x -> results.add((Path)x), ioExceptionConsumerMock);
+                x -> results.add((Path)x), statusConsumerMock, ioExceptionConsumerMock);
 
         // Run
         Files.walkFileTree(locationRoot, fileVisitor);
@@ -96,9 +99,10 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
                 // Returns True if file name ends with "rar"
                 .thenAnswer(x -> ((Path)x.getArguments()[0]).getFileName().toString().endsWith("rar"));
         Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
+        Consumer<Object> statusConsumerMock = Mockito.mock(Consumer.class);
 
         FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
-                x -> results.add((Path)x), ioExceptionConsumerMock);
+                x -> results.add((Path)x), statusConsumerMock, ioExceptionConsumerMock);
 
         // Run
         Files.walkFileTree(locationRoot, fileVisitor);
@@ -119,9 +123,10 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
         Mockito.when(matcherMock.matches(Matchers.any(Path.class)))
                 .thenAnswer(x -> ((Path)x.getArguments()[0]).getFileName().toString().endsWith("tmp"));
         Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
+        Consumer<Object> statusConsumerMock = Mockito.mock(Consumer.class);
 
         FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
-                x -> results.add((Path)x), ioExceptionConsumerMock);
+                x -> results.add((Path)x), statusConsumerMock, ioExceptionConsumerMock);
 
         // Run
         Files.walkFileTree(locationRoot, fileVisitor);
@@ -152,9 +157,9 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
                 ((FileVisitor<Path>)x.getArguments()[1]).visitFileFailed(file1_tmp.toPath(),
                         new IOException("File could not be access")))
                 .when(walkerTexasRangerMock).walkFileTree(Matchers.any(Path.class), Matchers.<FileVisitor<Path>>any());
+        Consumer<Object> statusConsumerMock = Mockito.mock(Consumer.class);
 
-
-        FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock, itemFoundCounsumer, ioExceptionConsumerMock);
+        FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock, itemFoundCounsumer, statusConsumerMock, ioExceptionConsumerMock);
 
         // Run
         walkerTexasRangerMock.walkFileTree(Paths.get(""), fileVisitor);
@@ -168,6 +173,7 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
         PathMatcher matcherMock = Mockito.mock(PathMatcher.class);
         Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
         Consumer<Object> itemFoundCounsumer = Mockito.mock(Consumer.class);
+        Consumer<Object> statusConsumer = Mockito.mock(Consumer.class);
 
         FileTreeWalker walkerTexasRangerMock = Mockito.mock(FileTreeWalker.class);
         Mockito.doAnswer(x ->
@@ -176,7 +182,7 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
                 .when(walkerTexasRangerMock).walkFileTree(Matchers.any(Path.class), Matchers.<FileVisitor<Path>>any());
 
 
-        FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock, itemFoundCounsumer, ioExceptionConsumerMock);
+        FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock, itemFoundCounsumer, statusConsumer, ioExceptionConsumerMock);
 
         // Run
         walkerTexasRangerMock.walkFileTree(Paths.get(""), fileVisitor);
@@ -185,5 +191,25 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
         Mockito.verify(ioExceptionConsumerMock, Mockito.times(1)).accept(Matchers.any(IOException.class));
     }
 
-    // TODO: test status updates (search location)
+    @Test
+    public void MustInvoke_OnVisitDirectoryCallback_ForEachDirectory() throws IOException {
+        List<Path> results = new ArrayList<>();
+
+        PathMatcher matcherMock = Mockito.mock(PathMatcher.class);
+        Consumer<Object> itemFoundConsumerMock = Mockito.mock(Consumer.class);
+
+        FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
+                itemFoundConsumerMock, status -> results.add((Path)status));
+
+        // Run
+        Files.walkFileTree(locationRoot, fileVisitor);
+
+        // Verify
+        Assert.assertTrue("No status updates pushed", results.size() > 0);
+        Assert.assertEquals("Wrong number of updates pushed", 2, results.size());
+        Assert.assertEquals("Wrong directories visited", results.get(0).toFile(), locationRootPath.getAbsoluteFile());
+        Assert.assertEquals("Wrong directories visited", results.get(1).toFile(), subDirectoryPath.getAbsoluteFile());
+    }
+
+    // TODO: remove that redundant temp constructor. Write SearchEngineTests
 }

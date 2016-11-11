@@ -3,6 +3,7 @@ package com.andrewd.theseeker.filesystem.tests;
 import com.andrewd.theseeker.ItemFoundEventListener;
 import com.andrewd.theseeker.filesystem.FileSearchEngine;
 import com.andrewd.theseeker.filesystem.FileTreeWalker;
+import com.andrewd.theseeker.filesystem.FileVisitorFactory;
 import com.andrewd.theseeker.filesystem.PlainFileVisitor;
 
 import org.junit.Assert;
@@ -138,5 +139,26 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
         // Verify
         Mockito.verify(ioExceptionConsumerMock, Mockito.times(1)).accept(Matchers.any(IOException.class));
         Mockito.verify(ioExceptionConsumerMock2, Mockito.times(1)).accept(Matchers.any(IOException.class));
+    }
+
+    @Test
+    public void MustPushStartAndFinishStatusUpdates() throws IOException {
+        List<Path> results = new ArrayList<>();
+
+        FileTreeWalker walkerTexasRangerMock = Mockito.mock(FileTreeWalker.class);
+        FileVisitorFactory visitorFactoryMock = Mockito.mock(FileVisitorFactory.class);
+        FileSearchEngine searchEngine = new FileSearchEngine(visitorFactoryMock, walkerTexasRangerMock);
+        Consumer<Object> statusConsumer = Mockito.mock(Consumer.class);
+        searchEngine.addStatusEventListener(statusConsumer);
+
+        // Run
+        searchEngine.search("", "");
+
+        // Verify
+        Mockito.verify(statusConsumer, Mockito.times(1)).accept(("STARTED"));
+        Mockito.verify(statusConsumer, Mockito.times(1)).accept(("FINISHED"));
+        /* TODO: Started and Finished strings are temporary placeholders until
+         I come up with a proper type for status updates
+         */
     }
 }

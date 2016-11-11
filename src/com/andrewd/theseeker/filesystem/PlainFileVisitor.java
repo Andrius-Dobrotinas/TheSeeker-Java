@@ -14,20 +14,23 @@ import java.util.function.Consumer;
 public class PlainFileVisitor implements FileVisitor<Path> {
     private PathMatcher matcher;
     private Consumer<Object> onItemFound;
+    private Consumer<Object> onVisitDirectory;
     private Consumer<IOException> exceptionConsumer;
 
-    public PlainFileVisitor(PathMatcher matcher, Consumer<Object> onItemFound) {
-        this(matcher, onItemFound, null);
+    public PlainFileVisitor(PathMatcher matcher, Consumer<Object> onItemFound, Consumer<Object> onVisitDirectory) {
+        this(matcher, onItemFound, onVisitDirectory, null);
     }
 
-    public PlainFileVisitor(PathMatcher matcher, Consumer<Object> onItemFound, Consumer<IOException> exceptionConsumer) {
+    public PlainFileVisitor(PathMatcher matcher, Consumer<Object> onItemFound, Consumer<Object> onVisitDirectory, Consumer<IOException> exceptionConsumer) {
         this.matcher = matcher;
         this.onItemFound = onItemFound;
+        this.onVisitDirectory = onVisitDirectory;
         this.exceptionConsumer = exceptionConsumer;
     }
 
     @Override
     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+        onVisitDirectory.accept(dir);
         return FileVisitResult.CONTINUE;
     }
 
