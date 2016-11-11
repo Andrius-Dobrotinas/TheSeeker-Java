@@ -7,9 +7,9 @@ import java.util.function.Consumer;
 /**
  * Created by qwe on 11/7/2016.
  */
-public abstract class SearchEngineBase {
+public abstract class SearchEngineBase implements SearchEngine {
     private List<ItemFoundEventListener> itemFoundListeners = new ArrayList<>();
-    private List<Consumer<Object>> statusUpdateEventListenrs = new ArrayList<>();
+    private List<Consumer<Object>> statusUpdateEventListeners = new ArrayList<>();
 
     public final void search(String location, String pattern) {
         onStatusUpdate("STARTED");
@@ -30,11 +30,11 @@ public abstract class SearchEngineBase {
     }
 
     public void addStatusEventListener(Consumer<Object> statusConsumer) {
-        statusUpdateEventListenrs.add(statusConsumer);
+        statusUpdateEventListeners.add(statusConsumer);
     }
 
     protected void onStatusUpdate(Object status) {
-        for(Consumer<Object> listener : statusUpdateEventListenrs) {
+        for(Consumer<Object> listener : statusUpdateEventListeners) {
             listener.accept(status);
         }
     }
