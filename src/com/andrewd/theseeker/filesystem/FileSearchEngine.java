@@ -1,6 +1,7 @@
 package com.andrewd.theseeker.filesystem;
 
 import com.andrewd.theseeker.SearchEngineBase;
+import com.andrewd.theseeker.async.CancellationToken;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Created by qwe on 11/7/2016.
+ * Created by Andrew D on 11/7/2016.
  */
 public class FileSearchEngine extends SearchEngineBase {
     private FileVisitorFactory fileVisitorFactory;
@@ -24,8 +25,8 @@ public class FileSearchEngine extends SearchEngineBase {
     }
 
     @Override
-    public void performSearch(String location, String pattern) {
-        // TODO get this PathMatcher instantiation in order
+    public void performSearch(String location, String pattern, CancellationToken cancellationToken) {
+        // TODO get this PathMatcher instantiation in order (inject it)
         PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
 
         try {
@@ -33,6 +34,7 @@ public class FileSearchEngine extends SearchEngineBase {
                     fileVisitorFactory.createVisitor(matcher,
                             item -> super.onItemFound(item),
                             status -> super.onStatusUpdate(status),
+                            cancellationToken,
                             this::onIOException));
         } catch (IOException e) {
             e.printStackTrace();

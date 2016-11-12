@@ -1,5 +1,7 @@
 package com.andrewd.theseeker.filesystem;
 
+import com.andrewd.theseeker.async.CancellationToken;
+
 import java.io.IOException;
 import java.nio.file.FileVisitor;
 import java.nio.file.Path;
@@ -13,5 +15,6 @@ import java.util.function.Consumer;
 public interface FileVisitorFactory {
     FileVisitor<Path> createVisitor(PathMatcher matcher, Consumer<Object> foundItemConsumer,
                                     Consumer<Object> onVisitDirectory,
+                                    CancellationToken cancellationToken,
                                     Consumer<IOException> ioExceptionConsumer);
 }

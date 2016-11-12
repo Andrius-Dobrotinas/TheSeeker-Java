@@ -1,5 +1,7 @@
 package com.andrewd.theseeker;
 
+import com.andrewd.theseeker.async.CancellationToken;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -11,13 +13,13 @@ public abstract class SearchEngineBase implements SearchEngine {
     private List<ItemFoundEventListener> itemFoundListeners = new ArrayList<>();
     private List<Consumer<Object>> statusUpdateEventListeners = new ArrayList<>();
 
-    public final void search(String location, String pattern) {
+    public final void search(String location, String pattern, CancellationToken cancellationToken) {
         onStatusUpdate("STARTED");
-        performSearch(location, pattern);
+        performSearch(location, pattern, cancellationToken);
         onStatusUpdate("FINISHED");
     }
 
-    protected abstract void performSearch(String location, String pattern);
+    protected abstract void performSearch(String location, String pattern, CancellationToken cancellationToken);
 
     public void addItemFoundEventListener(ItemFoundEventListener listener) {
         itemFoundListeners.add(listener);

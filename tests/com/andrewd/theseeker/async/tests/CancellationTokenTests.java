@@ -1,5 +1,7 @@
-package com.andrewd.theseeker.tests;
+package com.andrewd.theseeker.async.tests;
 
+import com.andrewd.theseeker.async.CancellationToken;
+import com.andrewd.theseeker.async.ThreadInterruptionChecker;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -13,7 +15,7 @@ public class CancellationTokenTests {
 
     @Test
     public void ThreadMustFinishUninterrupted() throws InterruptedException {
-        CancellationToken token = new CancellationToken();
+        CancellationToken token = new ThreadInterruptionChecker();
         AtomicBoolean ranToFinish = new AtomicBoolean();
         AtomicBoolean compliedWithCancellation = new AtomicBoolean();
 
@@ -25,7 +27,7 @@ public class CancellationTokenTests {
 
     @Test
     public void ThreadMustComplyWithCancellationAndNotFinishWork() throws InterruptedException {
-        CancellationToken token = new CancellationToken();
+        CancellationToken token = new ThreadInterruptionChecker();
         AtomicBoolean ranToFinish = new AtomicBoolean();
         AtomicBoolean compliedWithCancellation = new AtomicBoolean();
 
@@ -76,12 +78,6 @@ public class CancellationTokenTests {
                 }
             }
             ranToFinish.set(true);
-        }
-    }
-
-    private class CancellationToken {
-        public boolean isCancellationRequested() {
-            return Thread.currentThread().isInterrupted();
         }
     }
 }

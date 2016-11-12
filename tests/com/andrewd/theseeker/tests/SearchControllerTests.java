@@ -4,6 +4,7 @@ import com.andrewd.theseeker.SearchEngine;
 import com.andrewd.theseeker.SearchEngineBase;
 import com.andrewd.theseeker.SearchResultsConsumer;
 import com.andrewd.theseeker.SearchController;
+import com.andrewd.theseeker.async.CancellationToken;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -14,19 +15,22 @@ import org.mockito.Mockito;
  */
 public class SearchControllerTests {
 
+    //TODO: maybe rename to AsyncSearchController?
+
     @Test
     public void MustCallSearchEngine_SearchMethodWithSuppliedArguments() {
         SearchEngine searchEngine = Mockito.mock(SearchEngine.class);
         SearchResultsConsumer resultsConsumerMock = Mockito.mock(SearchResultsConsumer.class);
+        CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
 
         SearchController controller = new SearchController(searchEngine, resultsConsumerMock);
 
          // Run
-        controller.searchAsync("location", "pattern");
+        controller.searchAsync("location", "pattern", cancellationToken);
 
         // Verify
         Mockito.verify(searchEngine, Mockito.times(1))
-                .search(Matchers.eq("location"), Matchers.eq("pattern"));
+                .search(Matchers.eq("location"), Matchers.eq("pattern"), Matchers.eq(cancellationToken));
     }
 
     /*@Test
@@ -65,7 +69,7 @@ public class SearchControllerTests {
     private class SearchEngineTestMock extends SearchEngineBase {
 
         @Override
-        protected void performSearch(String location, String pattern) {
+        protected void performSearch(String location, String pattern, CancellationToken cancellationToken) {
             // Keep the task busy, simulate some work
             String temp = "empty";
             for(int i = 0; i < 1000000; i++) {
