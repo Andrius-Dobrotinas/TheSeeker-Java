@@ -10,6 +10,8 @@ import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * Created by Andrew D. on 11/11/2016.
  */
@@ -25,7 +27,7 @@ public class SearchControllerTests {
 
         SearchController controller = new SearchController(searchEngine, resultsConsumerMock);
 
-         // Run
+        // Run
         controller.searchAsync("location", "pattern", cancellationToken);
 
         // Verify
@@ -33,47 +35,94 @@ public class SearchControllerTests {
                 .search(Matchers.eq("location"), Matchers.eq("pattern"), Matchers.eq(cancellationToken));
     }
 
-    /*@Test
-    public void MustPerformSearchOnASeparateThread1() {
-        SearchEngine searchEngine = new SearchEngineTestMock();
+    @Test
+    public void MustIndicateThatSearchIsNotRunningInitially() {
+        SearchEngine searchEngine = Mockito.mock(SearchEngine.class);
         SearchResultsConsumer resultsConsumerMock = Mockito.mock(SearchResultsConsumer.class);
 
         SearchController controller = new SearchController(searchEngine, resultsConsumerMock);
 
-        // Run
-        controller.searchAsync("", "");
-
         // Verify
-        Assert.assertTrue(controller.isRunning());
+        Assert.assertFalse("Controller reported search is running", controller.isRunning());
+    }
 
-        // Run
-        controller.stop();
-
-        // Verify
-        Assert.assertFalse(controller.isRunning());
-    }*/
-
-    /*@Test
-    public void MustPerformSearchOnASeparateThread() {
-        SearchEngine searchEngine = new SearchEngineTestMock();
+    @Test
+    public void StatusMustChangeToRunningOnSearchStart() throws InterruptedException {
         SearchResultsConsumer resultsConsumerMock = Mockito.mock(SearchResultsConsumer.class);
+        CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
+
+        AtomicBoolean started = new AtomicBoolean();
+        SearchEngine searchEngine = new SearchEngineTestMock(1000, () -> started.set(true), null);
 
         SearchController controller = new SearchController(searchEngine, resultsConsumerMock);
 
         // Run
-        controller.searchAsync("", "");
+        controller.searchAsync("location", "pattern", cancellationToken);
 
-        // Verify
-    }*/
+        // Verify that isRunning returns the right value when we know for sure that search has started
+        while(true) {
+            if (started.get() == true) {
+                Assert.assertTrue("Controller didn't report the search running", controller.isRunning());
+                break;
+            }
+        }
+    }
+
+    
+    @Test
+    public void StatusMustChangeOnBackToNotRunningWhenSearchFinishes() throws InterruptedException {
+        SearchResultsConsumer resultsConsumerMock = Mockito.mock(SearchResultsConsumer.class);
+        CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
+
+        AtomicBoolean finished = new AtomicBoolean();
+        SearchEngine searchEngine = new SearchEngineTestMock(1000, null, () -> finished.set(true));
+
+        SearchController controller = new SearchController(searchEngine, resultsConsumerMock);
+
+        // Run
+        controller.searchAsync("location", "pattern", cancellationToken);
+
+        /* Verify that isRunning returns the right value when we know that search has finished and waited
+        for about 1s to make sure the thread has exited
+         */
+        while(true) {
+            if (finished.get() == true) {
+                Thread.sleep(2000);
+                Assert.assertFalse("Controller didn't report the search no longer running", controller.isRunning());
+                break;
+            }
+        }
+    }
 
     private class SearchEngineTestMock extends SearchEngineBase {
+        private int sleepFor;
+        private Runnable beforeStart;
+        private Runnable onFinish;
+
+        public SearchEngineTestMock(int sleepFor) {
+            this.sleepFor = sleepFor;
+        }
+
+        public SearchEngineTestMock(int sleepFor, Runnable beforeStart, Runnable onFinish) {
+            this(sleepFor);
+            this.beforeStart = beforeStart;
+            this.onFinish = onFinish;
+        }
 
         @Override
         protected void performSearch(String location, String pattern, CancellationToken cancellationToken) {
+            if (beforeStart != null) {
+                beforeStart.run();
+            }
             // Keep the task busy, simulate some work
-            String temp = "empty";
-            for(int i = 0; i < 1000000; i++) {
-                temp += temp;
+            try {
+                Thread.sleep(sleepFor);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            if (onFinish != null) {
+                onFinish.run();
             }
         }
     }

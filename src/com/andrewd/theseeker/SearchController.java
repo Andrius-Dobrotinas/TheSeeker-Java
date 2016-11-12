@@ -12,7 +12,6 @@ import java.util.concurrent.Future;
 public class SearchController {
     private SearchEngine searchEngine;
     private SearchResultsConsumer consumer;
-    private boolean running;
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
     private Future<?> task;
 
@@ -22,19 +21,17 @@ public class SearchController {
     }
 
     public void searchAsync(String location, String pattern, CancellationToken cancellationToken) {
-        running = true;
         task = executorService.submit(() -> {
             // TODO: wrap in try/finally?
             searchEngine.search(location, pattern, cancellationToken);
-            running = false;
         });
     }
 
-    /*public boolean isRunning() {
-        return running;
+    public boolean isRunning() {
+        return !(task == null || task.isDone());
     }
 
-    public void stop() {
+    /*public void stop() {
         if (!(task.isCancelled() || task.isDone())) {
             task.cancel(true);
         }
