@@ -95,7 +95,7 @@ public class SearchControllerTests {
     }
 
     @Test
-    public void SearchMustBeCancelledOnStop() {
+    public void Stop_MustCancelSearch() {
         SearchResultsConsumer resultsConsumerMock = Mockito.mock(SearchResultsConsumer.class);
         CancellationToken cancellationToken = new ThreadInterruptionChecker();
 
@@ -126,15 +126,9 @@ public class SearchControllerTests {
         Assert.assertTrue("Search task hasn't responded to cancellation request", cancelled.get());
     }
 
+
     @Test
-    /**
-     * This test might fail sometimes because it attempts to check if the last value of isRunning before the task
-     * reports it has finished work is right ("true"). In very rare instances a race condition occurs and the test fails.
-     * If this proves to be a problem in the future, I could just check for a value of isRunning right after Stop is
-     * called because that is the problem I am trying to solve in the first place. However, making sure that isRunning
-     * keeps returning "true" right until the task finishes is important from the outside point of view.
-     */
-    public void OnCancellationMustReportThatItIsStillRunningUntilSearchTaskActuallyReturns() {
+    public void Stop_MustBlockUntilSearchFinishes() {
         SearchResultsConsumer resultsConsumerMock = Mockito.mock(SearchResultsConsumer.class);
         CancellationToken cancellationToken = new ThreadInterruptionChecker();
 
@@ -142,7 +136,42 @@ public class SearchControllerTests {
         AtomicBoolean finished = new AtomicBoolean();
         AtomicBoolean cancelled = new AtomicBoolean();
         SearchEngine searchEngine = new CancellableSearchEngineFake(() -> started.set(true),
-                () -> finished.set(true), () -> cancelled.set(true), 90000, true);
+                () -> finished.set(true), () -> cancelled.set(true), 90000000, true);
+
+        SearchController controller = new SearchController(searchEngine, resultsConsumerMock);
+
+        // Run
+        controller.searchAsync("location", "pattern", cancellationToken);
+
+        // Wait until the task confirms it has started
+        while(started.get() == false) { }
+        System.out.println("Search start reported by the engine");
+
+        // Allow the task to do some work before cancelling it
+        for(int i = 0; i < 100000; i++) { }
+
+        // Send cancellation request
+        controller.stop(true);
+
+        Assert.assertTrue("Controller didn't block until search finishes", finished.get());
+    }
+
+    /**
+     * This test might fail sometimes because it attempts to check if the last value of isRunning before the task
+     * reports it has finished work is right ("true"). In very rare instances a race condition occurs and the test fails.
+     * If this proves to be a problem in the future, I could just check for a value of isRunning right after Stop is
+     * called because that is the problem I am trying to solve in the first place. However, making sure that isRunning
+     * keeps returning "true" right until the task finishes is important from the outside point of view.
+     */
+    @Test
+    public void OnCancellationMustReportThatItIsStillRunningUntilSearchTaskActuallyReturns() {
+        SearchResultsConsumer resultsConsumerMock = Mockito.mock(SearchResultsConsumer.class);
+        CancellationToken cancellationToken = new ThreadInterruptionChecker();
+
+        AtomicBoolean started = new AtomicBoolean();
+        AtomicBoolean finished = new AtomicBoolean();
+        SearchEngine searchEngine = new CancellableSearchEngineFake(() -> started.set(true),
+                () -> finished.set(true), null, 90000, true);
 
         SearchController controller = new SearchController(searchEngine, resultsConsumerMock);
 

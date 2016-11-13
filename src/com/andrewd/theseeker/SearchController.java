@@ -38,6 +38,15 @@ public class SearchController {
     }
 
     public void stop() {
-        task.cancel(true);
+        if (task != null) {
+            task.cancel(true);
+        }
+    }
+
+    public void stop(boolean blockUntilDone) {
+        stop();
+        if (blockUntilDone) {
+            while(isRunning()) { }
+        }
     }
 }
