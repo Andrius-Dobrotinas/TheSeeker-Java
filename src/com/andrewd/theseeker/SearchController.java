@@ -31,9 +31,9 @@ public class SearchController {
         return !(task == null || task.isDone());
     }
 
-    /*public void stop() {
-        if (!(task.isCancelled() || task.isDone())) {
+    public void stop() {
+       // if (!(task.isCancelled() || task.isDone())) {
             task.cancel(true);
-        }
-    }*/
+        //}
+    }
 }

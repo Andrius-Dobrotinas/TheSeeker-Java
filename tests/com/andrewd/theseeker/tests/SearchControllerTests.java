@@ -1,10 +1,10 @@
 package com.andrewd.theseeker.tests;
 
 import com.andrewd.theseeker.SearchEngine;
-import com.andrewd.theseeker.SearchEngineBase;
 import com.andrewd.theseeker.SearchResultsConsumer;
 import com.andrewd.theseeker.SearchController;
 import com.andrewd.theseeker.async.CancellationToken;
+import com.andrewd.theseeker.async.ThreadInterruptionChecker;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -52,7 +52,7 @@ public class SearchControllerTests {
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
 
         AtomicBoolean started = new AtomicBoolean();
-        SearchEngine searchEngine = new SearchEngineTestMock(1000, () -> started.set(true), null);
+        SearchEngine searchEngine = new SleepingSearchEngineFake(1000, () -> started.set(true), null);
 
         SearchController controller = new SearchController(searchEngine, resultsConsumerMock);
 
@@ -68,14 +68,13 @@ public class SearchControllerTests {
         }
     }
 
-    
     @Test
     public void StatusMustChangeOnBackToNotRunningWhenSearchFinishes() throws InterruptedException {
         SearchResultsConsumer resultsConsumerMock = Mockito.mock(SearchResultsConsumer.class);
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
 
         AtomicBoolean finished = new AtomicBoolean();
-        SearchEngine searchEngine = new SearchEngineTestMock(1000, null, () -> finished.set(true));
+        SearchEngine searchEngine = new SleepingSearchEngineFake(1000, null, () -> finished.set(true));
 
         SearchController controller = new SearchController(searchEngine, resultsConsumerMock);
 
@@ -87,43 +86,44 @@ public class SearchControllerTests {
          */
         while(true) {
             if (finished.get() == true) {
+                // Allow for the task to shut down after having invoked the finish callback (because it is invoked on the task thread)
                 Thread.sleep(2000);
-                Assert.assertFalse("Controller didn't report the search no longer running", controller.isRunning());
+
+                Assert.assertFalse("Controller didn't report that the is search no longer running", controller.isRunning());
                 break;
             }
         }
     }
 
-    private class SearchEngineTestMock extends SearchEngineBase {
-        private int sleepFor;
-        private Runnable beforeStart;
-        private Runnable onFinish;
+    @Test
+    public void SearchMustBeCancelledOnStop() {
+        SearchResultsConsumer resultsConsumerMock = Mockito.mock(SearchResultsConsumer.class);
+        CancellationToken cancellationToken = new ThreadInterruptionChecker();
 
-        public SearchEngineTestMock(int sleepFor) {
-            this.sleepFor = sleepFor;
-        }
+        AtomicBoolean started = new AtomicBoolean();
+        AtomicBoolean finished = new AtomicBoolean();
+        AtomicBoolean cancelled = new AtomicBoolean();
+        SearchEngine searchEngine = new CancellableSearchEngineFake(() -> started.set(true),
+                () -> finished.set(true), () -> cancelled.set(true), 90000000);
 
-        public SearchEngineTestMock(int sleepFor, Runnable beforeStart, Runnable onFinish) {
-            this(sleepFor);
-            this.beforeStart = beforeStart;
-            this.onFinish = onFinish;
-        }
+        SearchController controller = new SearchController(searchEngine, resultsConsumerMock);
 
-        @Override
-        protected void performSearch(String location, String pattern, CancellationToken cancellationToken) {
-            if (beforeStart != null) {
-                beforeStart.run();
-            }
-            // Keep the task busy, simulate some work
-            try {
-                Thread.sleep(sleepFor);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        // Run
+        controller.searchAsync("location", "pattern", cancellationToken);
 
-            if (onFinish != null) {
-                onFinish.run();
-            }
-        }
+        // Wait until the task confirms it has started
+        while(started.get() == false) { }
+        System.out.println("Search start reported by the engine");
+
+        // Allow the task to do some work before cancelling it
+        for(int i = 0; i < 100000; i++) { }
+
+        // Send cancellation request
+        controller.stop();
+
+        System.out.println("Requested Cancellation. Waiting for search to finish");
+        while(finished.get() == false) { }
+
+        Assert.assertTrue("Search task hasn't reacted to cancellation request", cancelled.get());
     }
 }
