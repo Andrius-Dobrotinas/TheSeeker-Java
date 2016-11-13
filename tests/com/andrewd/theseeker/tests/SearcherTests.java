@@ -3,7 +3,6 @@ package com.andrewd.theseeker.tests;
 import com.andrewd.theseeker.SearchEngine;
 import com.andrewd.theseeker.Searcher;
 import com.andrewd.theseeker.async.CancellationToken;
-import com.andrewd.theseeker.async.ThreadInterruptionChecker;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -16,65 +15,52 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class SearcherTests {
 
-    //TODO: maybe rename to AsyncSearchController?
-
     @Test
     public void MustCallSearchEngine_SearchMethodWithSuppliedArguments() {
         SearchEngine searchEngine = Mockito.mock(SearchEngine.class);
-        CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
 
-        Searcher controller = new Searcher(searchEngine);
+        Searcher searcher = new Searcher(searchEngine);
 
         // Run
-        controller.searchAsync("location", "pattern", cancellationToken);
+        searcher.searchAsync("location", "pattern");
 
         // Verify
         Mockito.verify(searchEngine, Mockito.times(1))
-                .search(Matchers.eq("location"), Matchers.eq("pattern"), Matchers.eq(cancellationToken));
+                .search(Matchers.eq("location"), Matchers.eq("pattern"), Matchers.any(CancellationToken.class));
     }
 
     @Test
     public void IsRunningMustReturnFalseInitially() {
         SearchEngine searchEngine = Mockito.mock(SearchEngine.class);
 
-        Searcher controller = new Searcher(searchEngine);
+        Searcher searcher = new Searcher(searchEngine);
 
         // Verify
-        Assert.assertFalse("Controller reported that a search is running", controller.isRunning());
+        Assert.assertFalse("Searcher reported that a search is running", searcher.isRunning());
     }
 
     @Test
-    public void IsRunningMustReturnTrueAfterSearchStarts() throws InterruptedException {
-        CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
+    public void IsRunningMustReturnTrueAfterInitiatingSearch() throws InterruptedException {
+        SearchEngine searchEngine = new SleepingSearchEngineFake(1000, null, null);
 
-        AtomicBoolean started = new AtomicBoolean();
-        SearchEngine searchEngine = new SleepingSearchEngineFake(1000, () -> started.set(true), null);
-
-        Searcher controller = new Searcher(searchEngine);
+        Searcher searcher = new Searcher(searchEngine);
 
         // Run
-        controller.searchAsync("location", "pattern", cancellationToken);
+        searcher.searchAsync("location", "pattern");
 
-        // Verify that isRunning returns the right value when we know that a search has started for sure
-        while(true) {
-            if (started.get() == true) {
-                Assert.assertTrue("Controller didn't report that the search running", controller.isRunning());
-                break;
-            }
-        }
+        // Verify
+        Assert.assertTrue("Searcher didn't report that the is search running", searcher.isRunning());
     }
 
     @Test
     public void IsRunningMustReturnFalseAfterSearchFinishes() throws InterruptedException {
-        CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
-
         AtomicBoolean finished = new AtomicBoolean();
         SearchEngine searchEngine = new SleepingSearchEngineFake(1000, null, () -> finished.set(true));
 
-        Searcher controller = new Searcher(searchEngine);
+        Searcher searcher = new Searcher(searchEngine);
 
         // Run
-        controller.searchAsync("location", "pattern", cancellationToken);
+        searcher.searchAsync("location", "pattern");
 
         // Verify that isRunning returns the right value when we know that a search has finished and waited
         // for about 2 seconds to make sure the thread has exited
@@ -83,7 +69,7 @@ public class SearcherTests {
                 // Give the task some time to shut down after having invoked the finish callback (because it is invoked on the task thread)
                 Thread.sleep(2000);
 
-                Assert.assertFalse("Controller didn't report that the search is no longer running", controller.isRunning());
+                Assert.assertFalse("Searcher didn't report that the search is no longer running", searcher.isRunning());
                 break;
             }
         }
@@ -91,18 +77,16 @@ public class SearcherTests {
 
     @Test
     public void Stop_MustCancelSearch() {
-        CancellationToken cancellationToken = new ThreadInterruptionChecker();
-
         AtomicBoolean started = new AtomicBoolean();
         AtomicBoolean finished = new AtomicBoolean();
         AtomicBoolean cancelled = new AtomicBoolean();
         SearchEngine searchEngine = new CancellableSearchEngineFake(() -> started.set(true),
-                () -> finished.set(true), () -> cancelled.set(true), 90000000, false); // last argument is irrelavant in this case
+                () -> finished.set(true), () -> cancelled.set(true), 90000000, false); // last argument is irrelevant in this case
 
-        Searcher controller = new Searcher(searchEngine);
+        Searcher searcher = new Searcher(searchEngine);
 
         // Run
-        controller.searchAsync("location", "pattern", cancellationToken);
+        searcher.searchAsync("location", "pattern");
 
         // Wait until the task confirms it has started
         while(started.get() == false) { }
@@ -112,7 +96,7 @@ public class SearcherTests {
         for(int i = 0; i < 100000; i++) { }
 
         // Send cancellation request
-        controller.stop();
+        searcher.stop();
 
         System.out.println("Requested Cancellation. Waiting for search to finish");
         while(finished.get() == false) { }
@@ -123,18 +107,16 @@ public class SearcherTests {
 
     @Test
     public void Stop_MustBlockUntilSearchFinishes() {
-        CancellationToken cancellationToken = new ThreadInterruptionChecker();
-
         AtomicBoolean started = new AtomicBoolean();
         AtomicBoolean finished = new AtomicBoolean();
         AtomicBoolean cancelled = new AtomicBoolean();
         SearchEngine searchEngine = new CancellableSearchEngineFake(() -> started.set(true),
                 () -> finished.set(true), () -> cancelled.set(true), 90000000, true);
 
-        Searcher controller = new Searcher(searchEngine);
+        Searcher searcher = new Searcher(searchEngine);
 
         // Run
-        controller.searchAsync("location", "pattern", cancellationToken);
+        searcher.searchAsync("location", "pattern");
 
         // Wait until the task confirms it has started
         while(started.get() == false) { }
@@ -144,9 +126,9 @@ public class SearcherTests {
         for(int i = 0; i < 100000; i++) { }
 
         // Send cancellation request
-        controller.stop(true);
+        searcher.stop(true);
 
-        Assert.assertTrue("Controller didn't block until search finishes", finished.get());
+        Assert.assertTrue("Searcher didn't block until search finishes", finished.get());
     }
 
     /**
@@ -158,34 +140,53 @@ public class SearcherTests {
      */
     @Test
     public void OnCancellationMustReportThatItIsStillRunningUntilSearchTaskActuallyReturns() {
-        CancellationToken cancellationToken = new ThreadInterruptionChecker();
-
         AtomicBoolean started = new AtomicBoolean();
         AtomicBoolean finished = new AtomicBoolean();
         SearchEngine searchEngine = new CancellableSearchEngineFake(() -> started.set(true),
                 () -> finished.set(true), null, 90000, true);
 
-        Searcher controller = new Searcher(searchEngine);
+        Searcher searcher = new Searcher(searchEngine);
 
         // Run
-        controller.searchAsync("location", "pattern", cancellationToken);
+        searcher.searchAsync("location", "pattern");
 
         // Wait until the task confirms it has started before cancelling it because the Executor service might not run
         // the task if it is in a cancelled state by the time it gets to run it
         while(started.get() == false) { }
         System.out.println("Search start reported by the engine");
 
-        controller.stop();
+        searcher.stop();
 
         // Poll isRunning until the task reports that it has finished. Then we will have captured the last value of isRunning
         // before task finishes.
         boolean running = false;
         while (finished.get() == false) {
-            running = controller.isRunning();
+            running = searcher.isRunning();
         }
         System.out.println("The engine reported that it has finished");
 
         // Check the value of "running" that was captured right before the task reported that it has finished
-        Assert.assertTrue("Controller reported that it is not running although the task hasn't finished yet", running);
+        Assert.assertTrue("Searcher reported that it is not running although the task hasn't finished yet", running);
+    }
+
+    @Test
+    public void MustInvokeFinishEventListener() throws InterruptedException {
+        AtomicBoolean started = new AtomicBoolean();
+        AtomicBoolean finished = new AtomicBoolean();
+        SearchEngine searchEngine = new CancellableSearchEngineFake(() -> started.set(true), null, null, 2000, false);
+
+        Searcher searcher = new Searcher(searchEngine);
+        searcher.addFinishEventListener(() -> finished.set(true));
+
+        // Run
+        searcher.searchAsync("location", "pattern");
+
+        // Wait until the task confirms it has started
+        while(started.get() == false) { }
+        System.out.println("Search start reported by the engine");
+
+        searcher.stop(true);
+
+        Assert.assertTrue("Finish event listener didn't get invoked", finished.get());
     }
 }
