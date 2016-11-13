@@ -9,7 +9,7 @@ import java.util.concurrent.Future;
 /**
  * Created by Andrew D on 11/11/2016.
  */
-public class SearchController {
+public class SearchController implements AsyncSearchController {
     private SearchEngine searchEngine;
     private SearchResultsConsumer consumer;
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
