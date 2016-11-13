@@ -9,9 +9,8 @@ import java.util.concurrent.Future;
 /**
  * Created by Andrew D on 11/11/2016.
  */
-public class SearchController implements AsyncSearchController {
+public class Searcher implements AsyncSearcher {
     private SearchEngine searchEngine;
-    private SearchResultsConsumer consumer;
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
     private Future<?> task;
 
@@ -19,9 +18,8 @@ public class SearchController implements AsyncSearchController {
     // tasks' isDone() value which is skewed when the task is cancelled
     private volatile boolean searchIsRunning;
 
-    public SearchController(SearchEngine searchEngine, SearchResultsConsumer consumer) {
+    public Searcher(SearchEngine searchEngine) {
         this.searchEngine = searchEngine;
-        this.consumer = consumer;
     }
 
     public void searchAsync(String location, String pattern, CancellationToken cancellationToken) {

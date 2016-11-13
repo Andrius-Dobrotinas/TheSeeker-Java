@@ -1,8 +1,7 @@
 package com.andrewd.theseeker.tests;
 
 import com.andrewd.theseeker.SearchEngine;
-import com.andrewd.theseeker.SearchResultsConsumer;
-import com.andrewd.theseeker.SearchController;
+import com.andrewd.theseeker.Searcher;
 import com.andrewd.theseeker.async.CancellationToken;
 import com.andrewd.theseeker.async.ThreadInterruptionChecker;
 import org.junit.Assert;
@@ -15,17 +14,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Created by Andrew D. on 11/11/2016.
  */
-public class SearchControllerTests {
+public class SearcherTests {
 
     //TODO: maybe rename to AsyncSearchController?
 
     @Test
     public void MustCallSearchEngine_SearchMethodWithSuppliedArguments() {
         SearchEngine searchEngine = Mockito.mock(SearchEngine.class);
-        SearchResultsConsumer resultsConsumerMock = Mockito.mock(SearchResultsConsumer.class);
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
 
-        SearchController controller = new SearchController(searchEngine, resultsConsumerMock);
+        Searcher controller = new Searcher(searchEngine);
 
         // Run
         controller.searchAsync("location", "pattern", cancellationToken);
@@ -38,9 +36,8 @@ public class SearchControllerTests {
     @Test
     public void IsRunningMustReturnFalseInitially() {
         SearchEngine searchEngine = Mockito.mock(SearchEngine.class);
-        SearchResultsConsumer resultsConsumerMock = Mockito.mock(SearchResultsConsumer.class);
 
-        SearchController controller = new SearchController(searchEngine, resultsConsumerMock);
+        Searcher controller = new Searcher(searchEngine);
 
         // Verify
         Assert.assertFalse("Controller reported that a search is running", controller.isRunning());
@@ -48,13 +45,12 @@ public class SearchControllerTests {
 
     @Test
     public void IsRunningMustReturnTrueAfterSearchStarts() throws InterruptedException {
-        SearchResultsConsumer resultsConsumerMock = Mockito.mock(SearchResultsConsumer.class);
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
 
         AtomicBoolean started = new AtomicBoolean();
         SearchEngine searchEngine = new SleepingSearchEngineFake(1000, () -> started.set(true), null);
 
-        SearchController controller = new SearchController(searchEngine, resultsConsumerMock);
+        Searcher controller = new Searcher(searchEngine);
 
         // Run
         controller.searchAsync("location", "pattern", cancellationToken);
@@ -70,13 +66,12 @@ public class SearchControllerTests {
 
     @Test
     public void IsRunningMustReturnFalseAfterSearchFinishes() throws InterruptedException {
-        SearchResultsConsumer resultsConsumerMock = Mockito.mock(SearchResultsConsumer.class);
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
 
         AtomicBoolean finished = new AtomicBoolean();
         SearchEngine searchEngine = new SleepingSearchEngineFake(1000, null, () -> finished.set(true));
 
-        SearchController controller = new SearchController(searchEngine, resultsConsumerMock);
+        Searcher controller = new Searcher(searchEngine);
 
         // Run
         controller.searchAsync("location", "pattern", cancellationToken);
@@ -96,7 +91,6 @@ public class SearchControllerTests {
 
     @Test
     public void Stop_MustCancelSearch() {
-        SearchResultsConsumer resultsConsumerMock = Mockito.mock(SearchResultsConsumer.class);
         CancellationToken cancellationToken = new ThreadInterruptionChecker();
 
         AtomicBoolean started = new AtomicBoolean();
@@ -105,7 +99,7 @@ public class SearchControllerTests {
         SearchEngine searchEngine = new CancellableSearchEngineFake(() -> started.set(true),
                 () -> finished.set(true), () -> cancelled.set(true), 90000000, false); // last argument is irrelavant in this case
 
-        SearchController controller = new SearchController(searchEngine, resultsConsumerMock);
+        Searcher controller = new Searcher(searchEngine);
 
         // Run
         controller.searchAsync("location", "pattern", cancellationToken);
@@ -129,7 +123,6 @@ public class SearchControllerTests {
 
     @Test
     public void Stop_MustBlockUntilSearchFinishes() {
-        SearchResultsConsumer resultsConsumerMock = Mockito.mock(SearchResultsConsumer.class);
         CancellationToken cancellationToken = new ThreadInterruptionChecker();
 
         AtomicBoolean started = new AtomicBoolean();
@@ -138,7 +131,7 @@ public class SearchControllerTests {
         SearchEngine searchEngine = new CancellableSearchEngineFake(() -> started.set(true),
                 () -> finished.set(true), () -> cancelled.set(true), 90000000, true);
 
-        SearchController controller = new SearchController(searchEngine, resultsConsumerMock);
+        Searcher controller = new Searcher(searchEngine);
 
         // Run
         controller.searchAsync("location", "pattern", cancellationToken);
@@ -165,7 +158,6 @@ public class SearchControllerTests {
      */
     @Test
     public void OnCancellationMustReportThatItIsStillRunningUntilSearchTaskActuallyReturns() {
-        SearchResultsConsumer resultsConsumerMock = Mockito.mock(SearchResultsConsumer.class);
         CancellationToken cancellationToken = new ThreadInterruptionChecker();
 
         AtomicBoolean started = new AtomicBoolean();
@@ -173,7 +165,7 @@ public class SearchControllerTests {
         SearchEngine searchEngine = new CancellableSearchEngineFake(() -> started.set(true),
                 () -> finished.set(true), null, 90000, true);
 
-        SearchController controller = new SearchController(searchEngine, resultsConsumerMock);
+        Searcher controller = new Searcher(searchEngine);
 
         // Run
         controller.searchAsync("location", "pattern", cancellationToken);
