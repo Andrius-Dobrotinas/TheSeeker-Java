@@ -17,16 +17,17 @@ public class Searcher implements AsyncSearcher {
     private Future<?> task;
     private List<Runnable> finishEventListeners = new ArrayList<>();
 
-    // For some reason Future.isDone() returns true before it actually finishes so I'm not using it anymore
-    private boolean searchIsRunning;
+    // Used to determine if the search (which is running on a separate task) is actually done regardless of the
+    // tasks' isDone() value which is skewed when the task is cancelled
+    private volatile boolean searchIsRunning;
 
     public Searcher(SearchEngine searchEngine) {
         this.searchEngine = searchEngine;
     }
 
     public void searchAsync(String location, String pattern) {
-        searchIsRunning = true;
         task = executorService.submit(() -> {
+            searchIsRunning = true;
             // TODO: wrap in try/finally?
             searchEngine.search(location, pattern, new ThreadInterruptionChecker()); // TODO: make Token DI'able via factory?
             onFinish();
@@ -35,7 +36,8 @@ public class Searcher implements AsyncSearcher {
     }
 
     public boolean isRunning() {
-        return searchIsRunning;
+        return !(task == null ||
+                (task.isDone() && searchIsRunning == false));
     }
 
     public void stop() {
