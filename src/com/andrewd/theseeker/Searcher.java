@@ -25,7 +25,9 @@ public class Searcher implements AsyncSearcher {
         this.searchEngine = searchEngine;
     }
 
-    public void searchAsync(String location, String pattern) {
+    public boolean searchAsync(String location, String pattern) {
+        if (isRunning()) return false;
+
         task = executorService.submit(() -> {
             searchIsRunning = true;
             // TODO: wrap in try/finally?
@@ -33,6 +35,7 @@ public class Searcher implements AsyncSearcher {
             onFinish();
             searchIsRunning = false;
         });
+        return true;
     }
 
     public boolean isRunning() {
@@ -57,7 +60,7 @@ public class Searcher implements AsyncSearcher {
         finishEventListeners.add(finishHandler);
     }
 
-    protected void onFinish() {
+    private void onFinish() {
         finishEventListeners.forEach(Runnable::run);
     }
 }

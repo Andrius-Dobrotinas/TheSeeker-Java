@@ -189,4 +189,49 @@ public class SearcherTests {
 
         Assert.assertTrue("Finish event listener didn't get invoked", finished.get());
     }
+
+    @Test
+    public void MustReturnTrueForNewSearchRequest() {
+        SearchEngine searchEngine = Mockito.mock(SearchEngine.class);
+
+        Searcher searcher = new Searcher(searchEngine);
+
+        boolean searchAccepted = searcher.searchAsync("", "");
+
+        Assert.assertTrue("Didn't return true on search accepted", searchAccepted);
+    }
+
+    @Test
+    public void MustNotStartNewSearchIfAlreadySearching() {
+        SearchEngine searchEngine = new CancellableSearchEngineFake(null, null, null, 2000, false);
+
+        Searcher searcher = new Searcher(searchEngine);
+
+        // Run
+        searcher.searchAsync("","");
+
+        boolean searchAccepted = searcher.searchAsync("","");
+
+        // Verify
+        Assert.assertFalse("Didn't return false for a subsequent request for search", searchAccepted);
+
+    }
+
+    @Test
+    public void MustStartNewSearchIfPreviousOneIsDone() {
+        SearchEngine searchEngine = new CancellableSearchEngineFake(null, null, null, 2000, false);
+
+        Searcher searcher = new Searcher(searchEngine);
+
+        // Run
+        searcher.searchAsync("","");
+
+        while(searcher.isRunning()) {}
+
+        boolean searchAccepted = searcher.searchAsync("","");
+
+        // Verify
+        Assert.assertTrue("Didn't return true for a subsequent request for search even through the previous search is done", searchAccepted);
+
+    }
 }
