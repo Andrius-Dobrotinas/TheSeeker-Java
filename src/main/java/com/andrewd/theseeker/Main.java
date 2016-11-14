@@ -1,3 +1,5 @@
+package com.andrewd.theseeker;
+
 import com.andrewd.theseeker.*;
 import com.andrewd.theseeker.filesystem.FileSearchEngine;
 import com.andrewd.theseeker.filesystem.PlainFileVisitor;
