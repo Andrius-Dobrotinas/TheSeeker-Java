@@ -16,17 +16,17 @@ import java.util.function.Consumer;
 // TODO: see if I can optimize checks for cancellation
 public class PlainFileVisitor implements FileVisitor<Path> {
     private PathMatcher matcher;
-    private Consumer<Object> onItemFound;
+    private Consumer<Path> onItemFound;
     private Consumer<Object> onVisitDirectory;
     private Consumer<IOException> exceptionConsumer;
     private CancellationToken cancellationToken;
 
-    public PlainFileVisitor(PathMatcher matcher, Consumer<Object> onItemFound, Consumer<Object> onVisitDirectory,
+    public PlainFileVisitor(PathMatcher matcher, Consumer<Path> onItemFound, Consumer<Object> onVisitDirectory,
                             CancellationToken cancellationToken) {
         this(matcher, onItemFound, onVisitDirectory, cancellationToken, null);
     }
 
-    public PlainFileVisitor(PathMatcher matcher, Consumer<Object> onItemFound, Consumer<Object> onVisitDirectory,
+    public PlainFileVisitor(PathMatcher matcher, Consumer<Path> onItemFound, Consumer<Object> onVisitDirectory,
                             CancellationToken cancellationToken, Consumer<IOException> exceptionConsumer) {
         this.matcher = matcher;
         this.onItemFound = onItemFound;

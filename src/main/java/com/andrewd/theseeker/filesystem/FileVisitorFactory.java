@@ -13,7 +13,7 @@ import java.util.function.Consumer;
  * invokes the supplied consumer for each matching file.
  */
 public interface FileVisitorFactory {
-    FileVisitor<Path> createVisitor(PathMatcher matcher, Consumer<Object> foundItemConsumer,
+    FileVisitor<Path> createVisitor(PathMatcher matcher, Consumer<Path> foundItemConsumer,
                                     Consumer<Object> onVisitDirectory,
                                     CancellationToken cancellationToken,
                                     Consumer<IOException> ioExceptionConsumer);

@@ -9,8 +9,8 @@ import java.util.function.Consumer;
 /**
  * Created by Andrew D on 11/7/2016.
  */
-public abstract class SearchEngineBase implements SearchEngine {
-    private List<ItemFoundEventListener> itemFoundListeners = new ArrayList<>();
+public abstract class SearchEngineBase<T> implements SearchEngine<T> {
+    private List<Consumer<T>> itemFoundListeners = new ArrayList<>();
     private List<Consumer<Object>> statusUpdateEventListeners = new ArrayList<>();
 
     public final void search(String location, String pattern, CancellationToken cancellationToken) {
@@ -21,13 +21,13 @@ public abstract class SearchEngineBase implements SearchEngine {
 
     protected abstract void performSearch(String location, String pattern, CancellationToken cancellationToken);
 
-    public void addItemFoundEventListener(ItemFoundEventListener listener) {
+    public void addItemFoundEventListener(Consumer<T> listener) {
         itemFoundListeners.add(listener);
     }
 
-    protected void onItemFound(Object item) {
-        for(ItemFoundEventListener listener : itemFoundListeners) {
-            listener.onItemFound(item);
+    protected void onItemFound(T item) {
+        for(Consumer<T> listener : itemFoundListeners) {
+            listener.accept(item);
         }
     }
 

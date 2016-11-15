@@ -1,6 +1,5 @@
 package com.andrewd.theseeker.filesystem.tests;
 
-import com.andrewd.theseeker.ItemFoundEventListener;
 import com.andrewd.theseeker.async.CancellationToken;
 import com.andrewd.theseeker.filesystem.*;
 
@@ -30,7 +29,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
         List<Path> results = new ArrayList<>();
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
         FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree, getPathMatcher());
-        searchEngine.addItemFoundEventListener(item -> results.add((Path)item));
+        searchEngine.addItemFoundEventListener(results::add);
 
         // Run
         searchEngine.search(locationRoot.toString(), uniqueFile1_tmp.getName(), cancellationToken);
@@ -45,36 +44,36 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
     public void MustInvokeSingleItemFoundCallback_ForSingleItem() throws IOException {
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
         FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree, getPathMatcher());
-        ItemFoundEventListener itemFoundCallbackMock = Mockito.mock(ItemFoundEventListener.class);
+        Consumer<Path> itemFoundCallbackMock = Mockito.mock(Consumer.class);
         searchEngine.addItemFoundEventListener(itemFoundCallbackMock);
 
         // Run
         searchEngine.search(locationRoot.toString(), uniqueFile1_tmp.getName(), cancellationToken);
 
         // Verify
-        Mockito.verify(itemFoundCallbackMock, Mockito.times(1)).onItemFound(Matchers.any());
+        Mockito.verify(itemFoundCallbackMock, Mockito.times(1)).accept(Matchers.any());
     }
 
     @Test
     public void MustInvokeOneItemFoundCallback_ForSeveralItems() throws IOException {
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
         FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree, getPathMatcher());
-        ItemFoundEventListener itemFoundCallbackMock = Mockito.mock(ItemFoundEventListener.class);
+        Consumer<Path> itemFoundCallbackMock = Mockito.mock(Consumer.class);
         searchEngine.addItemFoundEventListener(itemFoundCallbackMock);
 
         // Run
         searchEngine.search(locationRoot.toString(), "*tmp", cancellationToken);
 
         // Verify -- There are four files that end with "tmp"
-        Mockito.verify(itemFoundCallbackMock, Mockito.times(4)).onItemFound(Matchers.any());
+        Mockito.verify(itemFoundCallbackMock, Mockito.times(4)).accept(Matchers.any());
     }
 
     @Test
     public void MustInvokeTwoItemFoundCallbacks_ForSingleItem() throws IOException {
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
         FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree, getPathMatcher());
-        ItemFoundEventListener itemFoundCallbackMock = Mockito.mock(ItemFoundEventListener.class);
-        ItemFoundEventListener itemFoundCallbackMock2 = Mockito.mock(ItemFoundEventListener.class);
+        Consumer<Path> itemFoundCallbackMock = Mockito.mock(Consumer.class);
+        Consumer<Path> itemFoundCallbackMock2 = Mockito.mock(Consumer.class);
         searchEngine.addItemFoundEventListener(itemFoundCallbackMock);
         searchEngine.addItemFoundEventListener(itemFoundCallbackMock2);
 
@@ -82,16 +81,16 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
         searchEngine.search(locationRoot.toString(), uniqueFile1_tmp.getName(), cancellationToken);
 
         // Verify
-        Mockito.verify(itemFoundCallbackMock, Mockito.times(1)).onItemFound(Matchers.any());
-        Mockito.verify(itemFoundCallbackMock2, Mockito.times(1)).onItemFound(Matchers.any());
+        Mockito.verify(itemFoundCallbackMock, Mockito.times(1)).accept(Matchers.any());
+        Mockito.verify(itemFoundCallbackMock2, Mockito.times(1)).accept(Matchers.any());
     }
 
     @Test
     public void MustInvokeTwoItemFoundCallbacks_ForSeveralItems() throws IOException {
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
         FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree, getPathMatcher());
-        ItemFoundEventListener itemFoundCallbackMock = Mockito.mock(ItemFoundEventListener.class);
-        ItemFoundEventListener itemFoundCallbackMock2 = Mockito.mock(ItemFoundEventListener.class);
+        Consumer<Path> itemFoundCallbackMock = Mockito.mock(Consumer.class);
+        Consumer<Path> itemFoundCallbackMock2 = Mockito.mock(Consumer.class);
         searchEngine.addItemFoundEventListener(itemFoundCallbackMock);
         searchEngine.addItemFoundEventListener(itemFoundCallbackMock2);
 
@@ -99,8 +98,8 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
         searchEngine.search(locationRoot.toString(), "*tmp", cancellationToken);
 
         // Verify -- There are four files that end with "tmp"
-        Mockito.verify(itemFoundCallbackMock, Mockito.times(4)).onItemFound(Matchers.any());
-        Mockito.verify(itemFoundCallbackMock2, Mockito.times(4)).onItemFound(Matchers.any());
+        Mockito.verify(itemFoundCallbackMock, Mockito.times(4)).accept(Matchers.any());
+        Mockito.verify(itemFoundCallbackMock2, Mockito.times(4)).accept(Matchers.any());
     }
 
     @Test

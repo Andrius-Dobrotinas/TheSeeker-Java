@@ -6,7 +6,7 @@ import com.andrewd.theseeker.async.CancellationToken;
 /**
  * Search Engine fake that fires event handlers on search start (before simulation of work) and on search finish (after simulation of work)
  */
-abstract class SearchEngineFakeBase extends SearchEngineBase {
+abstract class SearchEngineFakeBase extends SearchEngineBase<Object> {
     private Runnable beforeStart;
     private Runnable onFinish;
 

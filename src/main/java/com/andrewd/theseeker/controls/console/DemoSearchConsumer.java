@@ -3,11 +3,12 @@ package com.andrewd.theseeker.controls.console;
 import com.andrewd.theseeker.SearchResultsConsumer;
 
 import java.io.PrintStream;
+import java.nio.file.Path;
 
 /**
  * Created by Andrew D on 11/13/2016.
  */
-public class DemoSearchConsumer implements SearchResultsConsumer {
+public class DemoSearchConsumer implements SearchResultsConsumer<Path> {
     private PrintStream outStream;
 
     public static final String STATUS_PREFIX = "STATUS: ";
@@ -17,7 +18,7 @@ public class DemoSearchConsumer implements SearchResultsConsumer {
     }
 
     @Override
-    public void push(Object item) {
+    public void push(Path item) {
         outStream.println(item);
     }
 

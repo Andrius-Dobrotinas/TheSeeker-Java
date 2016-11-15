@@ -4,6 +4,7 @@ import com.andrewd.theseeker.SearchEngineBase;
 import com.andrewd.theseeker.async.CancellationToken;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import java.util.function.Consumer;
 /**
  * Created by Andrew D on 11/7/2016.
  */
-public class FileSearchEngine extends SearchEngineBase {
+public class FileSearchEngine extends SearchEngineBase<Path> {
     private FileVisitorFactory fileVisitorFactory;
     private FileTreeWalker fileTreeWalker;
     private PathMatcherFactory pathMatcherFactory;

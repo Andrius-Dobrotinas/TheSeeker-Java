@@ -11,6 +11,7 @@ import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Path;
 
 /**
  * Created by Andrew D on 11/14/2016.
@@ -19,7 +20,7 @@ public class DemoSearchUITests {
 
     @Test
     public void MustCallSearchEngine_SearchMethod() throws IOException {
-        SearchEngine searchEngine = Mockito.mock(SearchEngine.class);
+        SearchEngine<Path> searchEngine = Mockito.mock(SearchEngine.class);
         AsyncSearcher searcher = new Searcher(searchEngine);
 
         InputStreamFake inStream = new InputStreamFake("c:\nasd\n" + DemoSearchUI.EXIT_COMMAND + "\n");

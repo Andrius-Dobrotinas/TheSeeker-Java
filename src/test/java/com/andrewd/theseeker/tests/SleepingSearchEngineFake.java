@@ -18,7 +18,7 @@ class SleepingSearchEngineFake extends SearchEngineFakeBase {
         try {
             Thread.sleep(sleepFor);
         } catch (InterruptedException e) {
-            System.out.println("Task shouldn' have been interrupted");
+            System.out.println("Task shouldn't have been interrupted");
             e.printStackTrace();
         }
     }

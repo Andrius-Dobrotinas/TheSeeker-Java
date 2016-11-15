@@ -32,7 +32,7 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
         Consumer<Object> statusConsumerMock = Mockito.mock(Consumer.class);
 
         FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
-                x -> results.add((Path)x), statusConsumerMock, cancellationToken, ioExceptionConsumerMock);
+                results::add, statusConsumerMock, cancellationToken, ioExceptionConsumerMock);
 
         // Run
         Files.walkFileTree(locationRoot, fileVisitor);
@@ -56,7 +56,7 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
         Consumer<Object> statusConsumerMock = Mockito.mock(Consumer.class);
 
         FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
-                x -> results.add((Path)x), statusConsumerMock, cancellationToken, ioExceptionConsumerMock);
+                results::add, statusConsumerMock, cancellationToken, ioExceptionConsumerMock);
 
         // Run
         Files.walkFileTree(locationRoot, fileVisitor);
@@ -80,7 +80,7 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
         Consumer<Object> statusConsumerMock = Mockito.mock(Consumer.class);
 
         FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
-                x -> results.add((Path)x), statusConsumerMock, cancellationToken, ioExceptionConsumerMock);
+                results::add, statusConsumerMock, cancellationToken, ioExceptionConsumerMock);
 
         // Run
         Files.walkFileTree(locationRoot, fileVisitor);
@@ -108,7 +108,7 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
         Consumer<Object> statusConsumerMock = Mockito.mock(Consumer.class);
 
         FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
-                x -> results.add((Path)x), statusConsumerMock, cancellationToken, ioExceptionConsumerMock);
+                results::add, statusConsumerMock, cancellationToken, ioExceptionConsumerMock);
 
         // Run
         Files.walkFileTree(locationRoot, fileVisitor);
@@ -133,7 +133,7 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
         Consumer<Object> statusConsumerMock = Mockito.mock(Consumer.class);
 
         FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
-                x -> results.add((Path)x), statusConsumerMock, cancellationToken, ioExceptionConsumerMock);
+                results::add, statusConsumerMock, cancellationToken, ioExceptionConsumerMock);
 
         // Run
         Files.walkFileTree(locationRoot, fileVisitor);
@@ -158,7 +158,7 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
         PathMatcher matcherMock = Mockito.mock(PathMatcher.class);
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
         Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
-        Consumer<Object> itemFoundCounsumer = Mockito.mock(Consumer.class);
+        Consumer<Path> itemFoundConsumer = Mockito.mock(Consumer.class);
 
         FileTreeWalker walkerTexasRangerMock = Mockito.mock(FileTreeWalker.class);
         Mockito.doAnswer(x ->
@@ -167,7 +167,7 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
                 .when(walkerTexasRangerMock).walkFileTree(Matchers.any(Path.class), Matchers.<FileVisitor<Path>>any());
         Consumer<Object> statusConsumerMock = Mockito.mock(Consumer.class);
 
-        FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock, itemFoundCounsumer, statusConsumerMock,
+        FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock, itemFoundConsumer, statusConsumerMock,
                 cancellationToken, ioExceptionConsumerMock);
 
         // Run
@@ -182,7 +182,7 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
         PathMatcher matcherMock = Mockito.mock(PathMatcher.class);
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
         Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
-        Consumer<Object> itemFoundCounsumer = Mockito.mock(Consumer.class);
+        Consumer<Path> itemFoundConsumer = Mockito.mock(Consumer.class);
         Consumer<Object> statusConsumer = Mockito.mock(Consumer.class);
 
         FileTreeWalker walkerTexasRangerMock = Mockito.mock(FileTreeWalker.class);
@@ -192,7 +192,7 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
                 .when(walkerTexasRangerMock).walkFileTree(Matchers.any(Path.class), Matchers.<FileVisitor<Path>>any());
 
 
-        FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock, itemFoundCounsumer, statusConsumer,
+        FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock, itemFoundConsumer, statusConsumer,
                 cancellationToken, ioExceptionConsumerMock);
 
         // Run
@@ -208,7 +208,7 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
 
         PathMatcher matcherMock = Mockito.mock(PathMatcher.class);
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
-        Consumer<Object> itemFoundConsumerMock = Mockito.mock(Consumer.class);
+        Consumer<Path> itemFoundConsumerMock = Mockito.mock(Consumer.class);
 
         FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
                 itemFoundConsumerMock, status -> results.add((Path)status), cancellationToken);
@@ -227,7 +227,7 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
     public void MustKeepWalkingWhenNoCancellationIsRequested() throws IOException {
         PathMatcher matcherMock = Mockito.mock(PathMatcher.class);
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
-        Consumer<Object> itemFoundConsumerMock = Mockito.mock(Consumer.class);
+        Consumer<Path> itemFoundConsumerMock = Mockito.mock(Consumer.class);
         Consumer<Object> statusUpdateMock = Mockito.mock(Consumer.class);
         Path path = Mockito.mock(Path.class);
         BasicFileAttributes attributes = Mockito.mock(BasicFileAttributes.class);
@@ -247,10 +247,8 @@ public class PlainFileVisitorTests extends FileSearchEngineTestsBase {
     public void MustTerminateWhenCancellationRequested() throws IOException {
         PathMatcher matcherMock = Mockito.mock(PathMatcher.class);
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
-        Consumer<Object> itemFoundConsumerMock = Mockito.mock(Consumer.class);
+        Consumer<Path> itemFoundConsumerMock = Mockito.mock(Consumer.class);
         Consumer<Object> statusUpdateMock = Mockito.mock(Consumer.class);
-        Path path = Mockito.mock(Path.class);
-        BasicFileAttributes attributes = Mockito.mock(BasicFileAttributes.class);
 
         FileVisitor<Path> fileVisitor = new PlainFileVisitor(matcherMock,
                 itemFoundConsumerMock, statusUpdateMock, cancellationToken);

@@ -32,9 +32,8 @@ public class DemoSearchUI implements SearchInput {
 
     public void run() {
         Scanner input = new Scanner(inStream);
-        boolean exit = false;
 
-        while(!exit) {
+        while(true) {
             outStream.println("Welcome to The Seeker console demo!");
             outStream.println("To exit, type EXIT and hit ENTER.");
             outStream.println("To stop searching, simply hit ENTER at any time.");
@@ -60,6 +59,7 @@ public class DemoSearchUI implements SearchInput {
             ExecutorService executorService = Executors.newSingleThreadExecutor();
             Future task = executorService.submit(() -> listenForCancellation(inStream));
 
+            // This is performs less calculations than polling searcher.isRunning()
             while(!finished) { }
             task.cancel(true);
 

@@ -10,14 +10,15 @@ import com.andrewd.theseeker.controls.console.DemoSearchConsumer;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class Main {
 
     public static void main(String[] args) throws IOException {
         java.io.PrintStream outStream = System.out;
-        SearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree,
+        SearchEngine<Path> searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree,
                 new DefaultPathMatcherFactory(FileSystems.getDefault(), DefaultPathMatcherFactory.SYNTAX_GLOB));
-        SearchResultsConsumer consumer = new DemoSearchConsumer(outStream);
+        SearchResultsConsumer<Path> consumer = new DemoSearchConsumer(outStream);
         AsyncSearcher searcher = new Searcher(searchEngine);
 
         searchEngine.addItemFoundEventListener(consumer::push);
