@@ -24,6 +24,9 @@ public class SearcherTests {
         // Run
         searcher.searchAsync("location", "pattern");
 
+        // Wait until the task stops
+        while(searcher.isRunning()) {}
+
         // Verify
         Mockito.verify(searchEngine, Mockito.times(1))
                 .search(Matchers.eq("location"), Matchers.eq("pattern"), Matchers.any(CancellationToken.class));
