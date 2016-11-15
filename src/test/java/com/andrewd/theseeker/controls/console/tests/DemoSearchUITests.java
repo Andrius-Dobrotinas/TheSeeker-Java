@@ -19,7 +19,7 @@ import java.nio.file.Path;
 public class DemoSearchUITests {
 
     @Test
-    public void MustCallSearchEngine_SearchMethod() throws IOException {
+    public void MustCallSearchEngine_SearchMethod() throws Exception {
         SearchEngine<Path, Path> searchEngine = Mockito.mock(SearchEngine.class);
         AsyncSearcher searcher = new Searcher(searchEngine);
 

@@ -8,7 +8,10 @@ import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Created by Andrew D. on 11/11/2016.
@@ -16,7 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class SearcherTests {
 
     @Test
-    public void MustCallSearchEngine_SearchMethodWithSuppliedArguments() {
+    public void MustCallSearchEngine_SearchMethodWithSuppliedArguments() throws Exception {
         SearchEngine<?,?> searchEngine = Mockito.mock(SearchEngine.class);
 
         Searcher searcher = new Searcher(searchEngine);
@@ -217,7 +220,6 @@ public class SearcherTests {
 
         // Verify
         Assert.assertFalse("Didn't return false for a subsequent request for search", searchAccepted);
-
     }
 
     @Test
@@ -235,6 +237,33 @@ public class SearcherTests {
 
         // Verify
         Assert.assertTrue("Didn't return true for a subsequent request for search even through the previous search is done", searchAccepted);
+    }
 
+    @Test
+    public void MustInvokeSearchHandlerOnSearchEngineException() {
+        String message = "My Exception";
+        AtomicReference<Exception> exception = new AtomicReference<>();
+        SearchEngine<?,?> searchEngine = Mockito.mock(SearchEngine.class);
+        Searcher searcher = new Searcher(searchEngine);
+        searcher.addSearchExceptionListener(exception::set);
+
+        try {
+            Mockito.doThrow(new CloneNotSupportedException(message))
+                    .when(searchEngine).search(Matchers.any(),Matchers.any(), Matchers.any());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Run
+        searcher.searchAsync("","");
+
+        while(searcher.isRunning()) {}
+
+        Exception result = exception.get();
+
+        // Verify
+        Assert.assertNotEquals("Exception handler didn't fire", null, result);
+        Assert.assertTrue("Wrong exception caught", result instanceof CloneNotSupportedException);
+        Assert.assertEquals("Wrong exception caught (wrong message)", message, result.getMessage());
     }
 }

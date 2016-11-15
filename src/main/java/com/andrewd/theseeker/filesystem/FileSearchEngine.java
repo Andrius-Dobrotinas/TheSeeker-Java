@@ -28,21 +28,14 @@ public class FileSearchEngine extends SearchEngineBase<Path, Path> {
     }
 
     @Override
-    public void performSearch(String location, String pattern, CancellationToken cancellationToken) {
+    public void performSearch(String location, String pattern, CancellationToken cancellationToken) throws Exception {
         PathMatcher matcher = pathMatcherFactory.apply(pattern);
-
-        try {
-            fileTreeWalker.walkFileTree(Paths.get(location),
-                    fileVisitorFactory.createVisitor(matcher,
-                            item -> super.onItemFound(item),
-                            status -> super.onStatusUpdate(status),
-                            cancellationToken,
-                            this::onIOException));
-        } catch (IOException e) {
-            e.printStackTrace();
-            // TODO: handle exception
-            // TODO: probably push status update?
-        }
+        fileTreeWalker.walkFileTree(Paths.get(location),
+                fileVisitorFactory.createVisitor(matcher,
+                        item -> super.onItemFound(item),
+                        status -> super.onStatusUpdate(status),
+                        cancellationToken,
+                        this::onIOException));
     }
 
     public void addIOExceptionEventListener(Consumer<IOException> listener) {

@@ -13,13 +13,14 @@ public abstract class SearchEngineBase<T, S> implements SearchEngine<T, S> {
     private List<Consumer<T>> itemFoundListeners = new ArrayList<>();
     private List<Consumer<S>> statusUpdateEventListeners = new ArrayList<>();
 
-    public final void search(String location, String pattern, CancellationToken cancellationToken) {
-        //onStatusUpdate("STARTED"); TODO: implement separate STARTED/FINISHED listeners
+    public final void search(String location, String pattern, CancellationToken cancellationToken) throws Exception {
+        // TODO: implement separate STARTED/FINISHED listeners someday when I actually need them
+        //onStatusUpdate("STARTED");
         performSearch(location, pattern, cancellationToken);
         //onStatusUpdate("FINISHED");
     }
 
-    protected abstract void performSearch(String location, String pattern, CancellationToken cancellationToken);
+    protected abstract void performSearch(String location, String pattern, CancellationToken cancellationToken) throws Exception;
 
     public void addItemFoundEventListener(Consumer<T> listener) {
         itemFoundListeners.add(listener);

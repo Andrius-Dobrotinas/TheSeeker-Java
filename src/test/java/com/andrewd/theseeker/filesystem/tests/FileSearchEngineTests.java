@@ -25,7 +25,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
     }
 
     @Test
-    public void MustFindOneFileWhoseNameMatchesExactly() throws IOException {
+    public void MustFindOneFileWhoseNameMatchesExactly() throws Exception {
         List<Path> results = new ArrayList<>();
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
         FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree, getPathMatcher());
@@ -41,7 +41,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
     }
 
     @Test
-    public void MustInvokeSingleItemFoundCallback_ForSingleItem() throws IOException {
+    public void MustInvokeSingleItemFoundCallback_ForSingleItem() throws Exception {
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
         FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree, getPathMatcher());
         Consumer<Path> itemFoundCallbackMock = Mockito.mock(Consumer.class);
@@ -55,7 +55,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
     }
 
     @Test
-    public void MustInvokeOneItemFoundCallback_ForSeveralItems() throws IOException {
+    public void MustInvokeOneItemFoundCallback_ForSeveralItems() throws Exception {
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
         FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree, getPathMatcher());
         Consumer<Path> itemFoundCallbackMock = Mockito.mock(Consumer.class);
@@ -69,7 +69,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
     }
 
     @Test
-    public void MustInvokeTwoItemFoundCallbacks_ForSingleItem() throws IOException {
+    public void MustInvokeTwoItemFoundCallbacks_ForSingleItem() throws Exception {
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
         FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree, getPathMatcher());
         Consumer<Path> itemFoundCallbackMock = Mockito.mock(Consumer.class);
@@ -86,7 +86,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
     }
 
     @Test
-    public void MustInvokeTwoItemFoundCallbacks_ForSeveralItems() throws IOException {
+    public void MustInvokeTwoItemFoundCallbacks_ForSeveralItems() throws Exception {
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
         FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree, getPathMatcher());
         Consumer<Path> itemFoundCallbackMock = Mockito.mock(Consumer.class);
@@ -103,7 +103,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
     }
 
     @Test
-    public void MustInvokeOneIOExceptionCallbackOnIOException() throws IOException {
+    public void MustInvokeOneIOExceptionCallbackOnIOException() throws Exception {
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
         FileTreeWalker walkerTexasRangerMock = Mockito.mock(FileTreeWalker.class);
         Mockito.doAnswer(x ->
@@ -125,7 +125,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
     }
 
     @Test
-    public void MustInvokeTwoIOExceptionCallbacksOnIOException() throws IOException {
+    public void MustInvokeTwoIOExceptionCallbacksOnIOException() throws Exception {
         FileTreeWalker walkerTexasRangerMock = Mockito.mock(FileTreeWalker.class);
         Mockito.doAnswer(x ->
                 // Extract FileVisitor (the second argument) from the method and simply return exception
@@ -166,7 +166,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
     }*/
 
     @Test
-    public void MustPassCancellationTokenToFileVisitor() {
+    public void MustPassCancellationTokenToFileVisitor() throws Exception {
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
         FileTreeWalker walkerTexasRangerMock = Mockito.mock(FileTreeWalker.class);
         FileVisitorFactory visitorFactoryMock = Mockito.mock(FileVisitorFactory.class);

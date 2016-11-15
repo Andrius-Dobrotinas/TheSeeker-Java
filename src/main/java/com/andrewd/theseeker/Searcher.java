@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
 /**
  * Created by Andrew D on 11/11/2016.
@@ -16,6 +17,7 @@ public class Searcher implements AsyncSearcher {
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
     private Future<?> task;
     private List<Runnable> finishEventListeners = new ArrayList<>();
+    private List<Consumer<Exception>> searchExceptionListeners = new ArrayList<>();
 
     // Is used to determine if the search (which is running on a separate task) is actually done regardless of the
     // tasks' isDone() value which is skewed when the task is cancelled
@@ -30,9 +32,13 @@ public class Searcher implements AsyncSearcher {
 
         task = executorService.submit(() -> {
             searchIsRunning = true;
-            // TODO: wrap in try/finally?
-            searchEngine.search(location, pattern, new ThreadInterruptionChecker()); // TODO: make Token DI'able via factory?
-            onFinish();
+            try {
+                searchEngine.search(location, pattern, new ThreadInterruptionChecker()); // TODO: make Token DI'able via factory?
+                onFinish();
+            }
+            catch (Exception e) {
+                onSearchException(e);
+            }
             searchIsRunning = false;
         });
         return true;
@@ -62,5 +68,15 @@ public class Searcher implements AsyncSearcher {
 
     private void onFinish() {
         finishEventListeners.forEach(Runnable::run);
+    }
+
+    public void addSearchExceptionListener(Consumer<Exception> exceptionHandler) {
+        searchExceptionListeners.add(exceptionHandler);
+    }
+
+    private void onSearchException(Exception e) {
+        for(Consumer<Exception> handler : searchExceptionListeners) {
+            handler.accept(e);
+        }
     }
 }
