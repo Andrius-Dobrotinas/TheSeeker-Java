@@ -10,10 +10,14 @@ import java.util.function.Consumer;
  * Created by Andrew D on 11/7/2016.
  */
 public abstract class SearchEngineBase<T, S> implements SearchEngine<T, S> {
-    private List<Consumer<T>> itemFoundListeners = new ArrayList<>();
-    private List<Consumer<S>> statusUpdateEventListeners = new ArrayList<>();
+    private final List<Consumer<T>> itemFoundListeners = new ArrayList<>();
+    private final List<Consumer<S>> statusUpdateEventListeners = new ArrayList<>();
 
     public final void search(String location, String pattern, CancellationToken cancellationToken) throws Exception {
+        if (cancellationToken == null){
+            throw new IllegalArgumentException("cancellationToken");
+        }
+
         // TODO: implement separate STARTED/FINISHED listeners someday when I actually need them
         //onStatusUpdate("STARTED");
         performSearch(location, pattern, cancellationToken);
@@ -23,6 +27,9 @@ public abstract class SearchEngineBase<T, S> implements SearchEngine<T, S> {
     protected abstract void performSearch(String location, String pattern, CancellationToken cancellationToken) throws Exception;
 
     public void addItemFoundEventListener(Consumer<T> listener) {
+        if (listener == null){
+            throw new IllegalArgumentException("listener");
+        }
         itemFoundListeners.add(listener);
     }
 
@@ -33,6 +40,9 @@ public abstract class SearchEngineBase<T, S> implements SearchEngine<T, S> {
     }
 
     public void addStatusEventListener(Consumer<S> statusConsumer) {
+        if (statusConsumer == null){
+            throw new IllegalArgumentException("statusConsumer");
+        }
         statusUpdateEventListeners.add(statusConsumer);
     }
 

@@ -139,9 +139,10 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
         Consumer<IOException> ioExceptionConsumerMock2 = Mockito.mock(Consumer.class);
         searchEngine.addIOExceptionEventListener(ioExceptionConsumerMock);
         searchEngine.addIOExceptionEventListener(ioExceptionConsumerMock2);
+        CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
 
         // Run
-        searchEngine.search("", "", null);
+        searchEngine.search("", "", cancellationToken);
 
         // Verify
         Mockito.verify(ioExceptionConsumerMock, Mockito.times(1)).accept(Matchers.any(IOException.class));

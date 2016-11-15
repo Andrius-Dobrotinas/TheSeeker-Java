@@ -13,13 +13,12 @@ import java.util.function.Consumer;
 /**
  * Created by Andrew D on 11/7/2016.
  */
-// TODO: see if I can optimize checks for cancellation
 public class PlainFileVisitor implements FileVisitor<Path> {
-    private PathMatcher matcher;
-    private Consumer<Path> onItemFound;
-    private Consumer<Path> onVisitDirectory;
-    private Consumer<IOException> exceptionConsumer;
-    private CancellationToken cancellationToken;
+    private final PathMatcher matcher;
+    private final Consumer<Path> onItemFound;
+    private final Consumer<Path> onVisitDirectory;
+    private final Consumer<IOException> exceptionConsumer;
+    private final CancellationToken cancellationToken;
 
     public PlainFileVisitor(PathMatcher matcher, Consumer<Path> onItemFound, Consumer<Path> onVisitDirectory,
                             CancellationToken cancellationToken) {
@@ -28,6 +27,19 @@ public class PlainFileVisitor implements FileVisitor<Path> {
 
     public PlainFileVisitor(PathMatcher matcher, Consumer<Path> onItemFound, Consumer<Path> onVisitDirectory,
                             CancellationToken cancellationToken, Consumer<IOException> exceptionConsumer) {
+        if (matcher == null){
+            throw new IllegalArgumentException("matcher");
+        }
+        if (onItemFound == null){
+            throw new IllegalArgumentException("onItemFound");
+        }
+        if (onVisitDirectory == null){
+            throw new IllegalArgumentException("onVisitDirectory");
+        }
+        if (cancellationToken == null){
+            throw new IllegalArgumentException("cancellationToken");
+        }
+
         this.matcher = matcher;
         this.onItemFound = onItemFound;
         this.onVisitDirectory = onVisitDirectory;

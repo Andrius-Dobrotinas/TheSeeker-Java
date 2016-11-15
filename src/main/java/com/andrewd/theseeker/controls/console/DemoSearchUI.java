@@ -14,15 +14,25 @@ import java.util.concurrent.Future;
  * Created by Andrew D on 11/13/2016.
  */
 public class DemoSearchUI implements SearchInput {
-    private AsyncSearcher searcher;
-    private InputStream inStream;
-    private PrintStream outStream;
+    private final AsyncSearcher searcher;
+    private final InputStream inStream;
+    private final PrintStream outStream;
     private volatile boolean finished;
 
     public final static String EXIT_COMMAND = "exit";
     private final static String CANCEL_COMMAND = "";
 
     public DemoSearchUI(AsyncSearcher searcher, InputStream inStream, PrintStream outStream) {
+        if (searcher == null){
+            throw new IllegalArgumentException("searcher");
+        }
+        if (inStream == null){
+            throw new IllegalArgumentException("inStream");
+        }
+        if (outStream == null){
+            throw new IllegalArgumentException("outStream");
+        }
+
         this.searcher = searcher;
         this.inStream = inStream;
         this.outStream = outStream;
@@ -59,7 +69,7 @@ public class DemoSearchUI implements SearchInput {
             ExecutorService executorService = Executors.newSingleThreadExecutor();
             Future task = executorService.submit(() -> listenForCancellation(inStream));
 
-            // This is performs less calculations than polling searcher.isRunning()
+            // This performs less calculations than polling searcher.isRunning()
             while(!finished) { }
             task.cancel(true);
 

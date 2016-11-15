@@ -13,6 +13,12 @@ public class DefaultPathMatcherFactory implements PathMatcherFactory {
     public static final String SYNTAX_GLOB = "glob";
 
     public DefaultPathMatcherFactory(FileSystem fileSystem, String syntax) {
+        if (fileSystem == null){
+            throw new IllegalArgumentException("fileSystem");
+        }
+        if (syntax == null || syntax.isEmpty()){
+            throw new IllegalArgumentException("syntax");
+        }
         this.fileSystem = fileSystem;
         this.syntax = syntax;
     }

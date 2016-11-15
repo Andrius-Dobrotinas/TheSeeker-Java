@@ -13,17 +13,20 @@ import java.util.function.Consumer;
  * Created by Andrew D on 11/11/2016.
  */
 public class Searcher implements AsyncSearcher {
-    private SearchEngine<?,?> searchEngine;
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final List<Runnable> finishEventListeners = new ArrayList<>();
+    private final List<Consumer<Exception>> searchExceptionListeners = new ArrayList<>();
+    private final SearchEngine<?,?> searchEngine;
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor(); // TODO: see if I should DI it
     private Future<?> task;
-    private List<Runnable> finishEventListeners = new ArrayList<>();
-    private List<Consumer<Exception>> searchExceptionListeners = new ArrayList<>();
 
     // Is used to determine if the search (which is running on a separate task) is actually done regardless of the
     // tasks' isDone() value which is skewed when the task is cancelled
     private volatile boolean searchIsRunning;
 
     public Searcher(SearchEngine<?,?> searchEngine) {
+        if (searchEngine == null){
+            throw new IllegalArgumentException("searchEngine");
+        }
         this.searchEngine = searchEngine;
     }
 
@@ -33,7 +36,14 @@ public class Searcher implements AsyncSearcher {
         task = executorService.submit(() -> {
             searchIsRunning = true;
             try {
-                searchEngine.search(location, pattern, new ThreadInterruptionChecker()); // TODO: make Token DI'able via factory?
+                // TODO: see if I should make Token DI'able via a factory
+                searchEngine.search(location, pattern, new ThreadInterruptionChecker());
+                onFinish();
+            }
+            catch (Exception e) {
+                onSearchException(e);
+            }
+            try {
                 onFinish();
             }
             catch (Exception e) {
@@ -63,6 +73,9 @@ public class Searcher implements AsyncSearcher {
     }
 
     public void addFinishEventListener(Runnable finishHandler) {
+        if (finishHandler == null){
+            throw new IllegalArgumentException("finishHandler");
+        }
         finishEventListeners.add(finishHandler);
     }
 
@@ -71,6 +84,9 @@ public class Searcher implements AsyncSearcher {
     }
 
     public void addSearchExceptionListener(Consumer<Exception> exceptionHandler) {
+        if (exceptionHandler == null){
+            throw new IllegalArgumentException("exceptionHandler");
+        }
         searchExceptionListeners.add(exceptionHandler);
     }
 

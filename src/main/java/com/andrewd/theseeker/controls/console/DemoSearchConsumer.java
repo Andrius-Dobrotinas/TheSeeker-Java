@@ -9,11 +9,14 @@ import java.nio.file.Path;
  * Created by Andrew D on 11/13/2016.
  */
 public class DemoSearchConsumer implements SearchResultsConsumer<Path, Path> {
-    private PrintStream outStream;
+    private final PrintStream outStream;
 
     public static final String STATUS_PREFIX = "STATUS: ";
 
     public DemoSearchConsumer(PrintStream outStream) {
+        if (outStream == null){
+            throw new IllegalArgumentException("outStream");
+        }
         this.outStream = outStream;
     }
 

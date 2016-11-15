@@ -15,13 +15,22 @@ import java.util.function.Consumer;
  * Created by Andrew D on 11/7/2016.
  */
 public class FileSearchEngine extends SearchEngineBase<Path, Path> {
-    private FileVisitorFactory fileVisitorFactory;
-    private FileTreeWalker fileTreeWalker;
-    private PathMatcherFactory pathMatcherFactory;
-    private List<Consumer<IOException>> ioExceptionListeners = new ArrayList<>();
+    private final FileVisitorFactory fileVisitorFactory;
+    private final FileTreeWalker fileTreeWalker;
+    private final PathMatcherFactory pathMatcherFactory;
+    private final List<Consumer<IOException>> ioExceptionListeners = new ArrayList<>();
 
     public FileSearchEngine(FileVisitorFactory fileVisitorFactory, FileTreeWalker fileTreeWalker,
                             PathMatcherFactory pathMatcherFactory) {
+        if (fileVisitorFactory == null){
+            throw new IllegalArgumentException("fileVisitorFactory");
+        }
+        if (fileTreeWalker == null){
+            throw new IllegalArgumentException("fileTreeWalker");
+        }
+        if (pathMatcherFactory == null){
+            throw new IllegalArgumentException("pathMatcherFactory");
+        }
         this.fileVisitorFactory = fileVisitorFactory;
         this.fileTreeWalker = fileTreeWalker;
         this.pathMatcherFactory = pathMatcherFactory;
@@ -38,8 +47,11 @@ public class FileSearchEngine extends SearchEngineBase<Path, Path> {
                         this::onIOException));
     }
 
-    public void addIOExceptionEventListener(Consumer<IOException> listener) {
-        ioExceptionListeners.add(listener);
+    public void addIOExceptionEventListener(Consumer<IOException> exceptionHandler) {
+        if (exceptionHandler == null){
+            throw new IllegalArgumentException("exceptionHandler");
+        }
+        ioExceptionListeners.add(exceptionHandler);
     }
 
     private void onIOException(IOException exc) {
