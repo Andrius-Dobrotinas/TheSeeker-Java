@@ -2,10 +2,7 @@ package com.andrewd.theseeker.filesystem.tests;
 
 import com.andrewd.theseeker.ItemFoundEventListener;
 import com.andrewd.theseeker.async.CancellationToken;
-import com.andrewd.theseeker.filesystem.FileSearchEngine;
-import com.andrewd.theseeker.filesystem.FileTreeWalker;
-import com.andrewd.theseeker.filesystem.FileVisitorFactory;
-import com.andrewd.theseeker.filesystem.PlainFileVisitor;
+import com.andrewd.theseeker.filesystem.*;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -13,22 +10,26 @@ import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+
+import static com.andrewd.theseeker.filesystem.DefaultPathMatcherFactory.SYNTAX_GLOB;
 
 public class FileSearchEngineTests extends FileSearchEngineTestsBase {
 
     // TODO: Maybe the PathMatcher should use wildcards by default and not go for exact match unless specified?
 
+    private static PathMatcherFactory getPathMatcher() {
+        return new DefaultPathMatcherFactory(FileSystems.getDefault(), SYNTAX_GLOB);
+    }
+
     @Test
     public void MustFindOneFileWhoseNameMatchesExactly() throws IOException {
         List<Path> results = new ArrayList<>();
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
-        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree);
+        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree, getPathMatcher());
         searchEngine.addItemFoundEventListener(item -> results.add((Path)item));
 
         // Run
@@ -43,7 +44,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
     @Test
     public void MustInvokeSingleItemFoundCallback_ForSingleItem() throws IOException {
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
-        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree);
+        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree, getPathMatcher());
         ItemFoundEventListener itemFoundCallbackMock = Mockito.mock(ItemFoundEventListener.class);
         searchEngine.addItemFoundEventListener(itemFoundCallbackMock);
 
@@ -57,7 +58,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
     @Test
     public void MustInvokeOneItemFoundCallback_ForSeveralItems() throws IOException {
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
-        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree);
+        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree, getPathMatcher());
         ItemFoundEventListener itemFoundCallbackMock = Mockito.mock(ItemFoundEventListener.class);
         searchEngine.addItemFoundEventListener(itemFoundCallbackMock);
 
@@ -71,7 +72,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
     @Test
     public void MustInvokeTwoItemFoundCallbacks_ForSingleItem() throws IOException {
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
-        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree);
+        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree, getPathMatcher());
         ItemFoundEventListener itemFoundCallbackMock = Mockito.mock(ItemFoundEventListener.class);
         ItemFoundEventListener itemFoundCallbackMock2 = Mockito.mock(ItemFoundEventListener.class);
         searchEngine.addItemFoundEventListener(itemFoundCallbackMock);
@@ -88,7 +89,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
     @Test
     public void MustInvokeTwoItemFoundCallbacks_ForSeveralItems() throws IOException {
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
-        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree);
+        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree, getPathMatcher());
         ItemFoundEventListener itemFoundCallbackMock = Mockito.mock(ItemFoundEventListener.class);
         ItemFoundEventListener itemFoundCallbackMock2 = Mockito.mock(ItemFoundEventListener.class);
         searchEngine.addItemFoundEventListener(itemFoundCallbackMock);
@@ -112,7 +113,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
                         new IOException("File could not be access")))
                 .when(walkerTexasRangerMock).walkFileTree(Matchers.any(Path.class), Matchers.<FileVisitor<Path>>any());
 
-        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, walkerTexasRangerMock);
+        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, walkerTexasRangerMock, getPathMatcher());
 
         Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
         searchEngine.addIOExceptionEventListener(ioExceptionConsumerMock);
@@ -133,7 +134,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
                         new IOException("File could not be accessed")))
                 .when(walkerTexasRangerMock).walkFileTree(Matchers.any(Path.class), Matchers.<FileVisitor<Path>>any());
 
-        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, walkerTexasRangerMock);
+        FileSearchEngine searchEngine = new FileSearchEngine(PlainFileVisitor::new, walkerTexasRangerMock, getPathMatcher());
 
         Consumer<IOException> ioExceptionConsumerMock = Mockito.mock(Consumer.class);
         Consumer<IOException> ioExceptionConsumerMock2 = Mockito.mock(Consumer.class);
@@ -152,7 +153,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
     public void MustPushStartAndFinishStatusUpdates() throws IOException {
         FileTreeWalker walkerTexasRangerMock = Mockito.mock(FileTreeWalker.class);
         FileVisitorFactory visitorFactoryMock = Mockito.mock(FileVisitorFactory.class);
-        FileSearchEngine searchEngine = new FileSearchEngine(visitorFactoryMock, walkerTexasRangerMock);
+        FileSearchEngine searchEngine = new FileSearchEngine(visitorFactoryMock, walkerTexasRangerMock, getPathMatcher());
         Consumer<Object> statusConsumer = Mockito.mock(Consumer.class);
         searchEngine.addStatusEventListener(statusConsumer);
 
@@ -170,7 +171,7 @@ public class FileSearchEngineTests extends FileSearchEngineTestsBase {
         CancellationToken cancellationToken = Mockito.mock(CancellationToken.class);
         FileTreeWalker walkerTexasRangerMock = Mockito.mock(FileTreeWalker.class);
         FileVisitorFactory visitorFactoryMock = Mockito.mock(FileVisitorFactory.class);
-        FileSearchEngine searchEngine = new FileSearchEngine(visitorFactoryMock, walkerTexasRangerMock);
+        FileSearchEngine searchEngine = new FileSearchEngine(visitorFactoryMock, walkerTexasRangerMock, getPathMatcher());
 
         // Run
         searchEngine.search("", "", cancellationToken);

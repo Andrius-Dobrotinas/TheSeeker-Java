@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Created by qwe on 11/7/2016.
+ * Created by Andrew D on 11/7/2016.
  */
 public abstract class SearchEngineBase implements SearchEngine {
     private List<ItemFoundEventListener> itemFoundListeners = new ArrayList<>();

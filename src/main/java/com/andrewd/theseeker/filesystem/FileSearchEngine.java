@@ -4,7 +4,6 @@ import com.andrewd.theseeker.SearchEngineBase;
 import com.andrewd.theseeker.async.CancellationToken;
 
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -17,17 +16,19 @@ import java.util.function.Consumer;
 public class FileSearchEngine extends SearchEngineBase {
     private FileVisitorFactory fileVisitorFactory;
     private FileTreeWalker fileTreeWalker;
+    private PathMatcherFactory pathMatcherFactory;
     private List<Consumer<IOException>> ioExceptionListeners = new ArrayList<>();
 
-    public FileSearchEngine(FileVisitorFactory fileVisitorFactory, FileTreeWalker fileTreeWalker) {
+    public FileSearchEngine(FileVisitorFactory fileVisitorFactory, FileTreeWalker fileTreeWalker,
+                            PathMatcherFactory pathMatcherFactory) {
         this.fileVisitorFactory = fileVisitorFactory;
         this.fileTreeWalker = fileTreeWalker;
+        this.pathMatcherFactory = pathMatcherFactory;
     }
 
     @Override
     public void performSearch(String location, String pattern, CancellationToken cancellationToken) {
-        // TODO get this PathMatcher instantiation in order (inject it)
-        PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
+        PathMatcher matcher = pathMatcherFactory.apply(pattern);
 
         try {
             fileTreeWalker.walkFileTree(Paths.get(location),
@@ -47,7 +48,7 @@ public class FileSearchEngine extends SearchEngineBase {
         ioExceptionListeners.add(listener);
     }
 
-    protected void onIOException(IOException exc) {
+    private void onIOException(IOException exc) {
         for(Consumer<IOException> listener : ioExceptionListeners) {
             listener.accept(exc);
         }
