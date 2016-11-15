@@ -13,7 +13,7 @@ import java.util.concurrent.Future;
 /**
  * Created by Andrew D on 11/13/2016.
  */
-public class DemoSearchInput implements SearchInput {
+public class DemoSearchUI implements SearchInput {
     private AsyncSearcher searcher;
     private InputStream inStream;
     private PrintStream outStream;
@@ -22,7 +22,7 @@ public class DemoSearchInput implements SearchInput {
     public final static String EXIT_COMMAND = "exit";
     private final static String CANCEL_COMMAND = "";
 
-    public DemoSearchInput(AsyncSearcher searcher, InputStream inStream, PrintStream outStream) {
+    public DemoSearchUI(AsyncSearcher searcher, InputStream inStream, PrintStream outStream) {
         this.searcher = searcher;
         this.inStream = inStream;
         this.outStream = outStream;
@@ -80,6 +80,7 @@ public class DemoSearchInput implements SearchInput {
             if(input.nextLine().equals(CANCEL_COMMAND)) {
                 outStream.println("Search cancelled!\n");
                 searcher.stop();
+                return;
             }
         }
     }

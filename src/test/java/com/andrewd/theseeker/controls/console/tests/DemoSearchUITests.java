@@ -4,7 +4,7 @@ import com.andrewd.theseeker.AsyncSearcher;
 import com.andrewd.theseeker.SearchEngine;
 import com.andrewd.theseeker.Searcher;
 import com.andrewd.theseeker.controls.SearchInput;
-import com.andrewd.theseeker.controls.console.DemoSearchInput;
+import com.andrewd.theseeker.controls.console.DemoSearchUI;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -18,7 +18,8 @@ import java.util.List;
 /**
  * Created by Andrew D on 11/14/2016.
  */
-public class DemoSearchInputTests {
+public class DemoSearchUITests {
+
     @Test
     public void MustPerformSearch() throws IOException {
         List<Object> results = new ArrayList<>();
@@ -32,10 +33,10 @@ public class DemoSearchInputTests {
             return null;
         }).when(searchEngine).search(Matchers.any(), Matchers.any(), Matchers.any());
 
-        InputStreamFake inStream = new InputStreamFake("c:\nasd\n" + DemoSearchInput.EXIT_COMMAND + "\n");
+        InputStreamFake inStream = new InputStreamFake("c:\nasd\n" + DemoSearchUI.EXIT_COMMAND + "\n");
         PrintStream outStream = Mockito.mock(PrintStream.class);
 
-        SearchInput searchInput = new DemoSearchInput(searcher, inStream, outStream);
+        SearchInput searchInput = new DemoSearchUI(searcher, inStream, outStream);
 
         // Run
         searchInput.run();

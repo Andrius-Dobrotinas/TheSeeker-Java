@@ -4,7 +4,7 @@ import com.andrewd.theseeker.filesystem.DefaultPathMatcherFactory;
 import com.andrewd.theseeker.filesystem.FileSearchEngine;
 import com.andrewd.theseeker.filesystem.PlainFileVisitor;
 import com.andrewd.theseeker.controls.SearchInput;
-import com.andrewd.theseeker.controls.console.DemoSearchInput;
+import com.andrewd.theseeker.controls.console.DemoSearchUI;
 import com.andrewd.theseeker.controls.console.DemoSearchConsumer;
 
 import java.io.IOException;
@@ -23,7 +23,7 @@ public class Main {
         searchEngine.addItemFoundEventListener(consumer::push);
         searchEngine.addStatusEventListener(consumer::pushStatus);
 
-        SearchInput searchInput = new DemoSearchInput(searcher, System.in, outStream);
+        SearchInput searchInput = new DemoSearchUI(searcher, System.in, outStream);
         searchInput.run();
     }
 }
