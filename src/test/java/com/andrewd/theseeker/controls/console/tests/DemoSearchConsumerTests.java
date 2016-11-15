@@ -41,14 +41,18 @@ public class DemoSearchConsumerTests {
         PrintStream stream = Mockito.mock(PrintStream.class);
         DemoSearchConsumer consumer = new DemoSearchConsumer(stream);
 
+        Path item1 = Paths.get("item1");
+        Path item2 = Paths.get("item2");
+        Path item3 = Paths.get("item3");
+
         // Run
-        consumer.pushStatus("item1");
-        consumer.pushStatus("item2");
-        consumer.pushStatus("item3");
+        consumer.pushStatus(item1);
+        consumer.pushStatus(item2);
+        consumer.pushStatus(item3);
 
         // Verify
-        Mockito.verify(stream, Mockito.times(1)).println(Matchers.eq(STATUS_PREFIX + "item1"));
-        Mockito.verify(stream, Mockito.times(1)).println(Matchers.eq(STATUS_PREFIX + "item2"));
-        Mockito.verify(stream, Mockito.times(1)).println(Matchers.eq(STATUS_PREFIX + "item3"));
+        Mockito.verify(stream, Mockito.times(1)).println(Matchers.eq(STATUS_PREFIX + item1));
+        Mockito.verify(stream, Mockito.times(1)).println(Matchers.eq(STATUS_PREFIX + item2));
+        Mockito.verify(stream, Mockito.times(1)).println(Matchers.eq(STATUS_PREFIX + item3));
     }
 }

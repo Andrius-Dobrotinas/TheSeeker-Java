@@ -17,7 +17,7 @@ public class SearcherTests {
 
     @Test
     public void MustCallSearchEngine_SearchMethodWithSuppliedArguments() {
-        SearchEngine<?> searchEngine = Mockito.mock(SearchEngine.class);
+        SearchEngine<?,?> searchEngine = Mockito.mock(SearchEngine.class);
 
         Searcher searcher = new Searcher(searchEngine);
 
@@ -34,7 +34,7 @@ public class SearcherTests {
 
     @Test
     public void IsRunningMustReturnFalseInitially() {
-        SearchEngine<?> searchEngine = Mockito.mock(SearchEngine.class);
+        SearchEngine<?,?> searchEngine = Mockito.mock(SearchEngine.class);
 
         Searcher searcher = new Searcher(searchEngine);
 
@@ -44,7 +44,7 @@ public class SearcherTests {
 
     @Test
     public void IsRunningMustReturnTrueAfterInitiatingSearch() throws InterruptedException {
-        SearchEngine<?> searchEngine = new SleepingSearchEngineFake(1000, null, null);
+        SearchEngine<?,?> searchEngine = new SleepingSearchEngineFake(1000, null, null);
 
         Searcher searcher = new Searcher(searchEngine);
 
@@ -58,7 +58,7 @@ public class SearcherTests {
     @Test
     public void IsRunningMustReturnFalseAfterSearchFinishes() throws InterruptedException {
         AtomicBoolean finished = new AtomicBoolean();
-        SearchEngine<?> searchEngine = new SleepingSearchEngineFake(1000, null, () -> finished.set(true));
+        SearchEngine<?,?> searchEngine = new SleepingSearchEngineFake(1000, null, () -> finished.set(true));
 
         Searcher searcher = new Searcher(searchEngine);
 
@@ -83,7 +83,7 @@ public class SearcherTests {
         AtomicBoolean started = new AtomicBoolean();
         AtomicBoolean finished = new AtomicBoolean();
         AtomicBoolean cancelled = new AtomicBoolean();
-        SearchEngine<?> searchEngine = new CancellableSearchEngineFake(() -> started.set(true),
+        SearchEngine<?,?> searchEngine = new CancellableSearchEngineFake(() -> started.set(true),
                 () -> finished.set(true), () -> cancelled.set(true), 90000000, false); // last argument is irrelevant in this case
 
         Searcher searcher = new Searcher(searchEngine);
@@ -113,7 +113,7 @@ public class SearcherTests {
         AtomicBoolean started = new AtomicBoolean();
         AtomicBoolean finished = new AtomicBoolean();
         AtomicBoolean cancelled = new AtomicBoolean();
-        SearchEngine<?> searchEngine = new CancellableSearchEngineFake(() -> started.set(true),
+        SearchEngine<?,?> searchEngine = new CancellableSearchEngineFake(() -> started.set(true),
                 () -> finished.set(true), () -> cancelled.set(true), 90000000, true);
 
         Searcher searcher = new Searcher(searchEngine);
@@ -145,7 +145,7 @@ public class SearcherTests {
     public void OnCancellationMustReportThatItIsStillRunningUntilSearchTaskActuallyReturns() {
         AtomicBoolean started = new AtomicBoolean();
         AtomicBoolean finished = new AtomicBoolean();
-        SearchEngine<?> searchEngine = new CancellableSearchEngineFake(() -> started.set(true),
+        SearchEngine<?,?> searchEngine = new CancellableSearchEngineFake(() -> started.set(true),
                 () -> finished.set(true), null, 90000, true);
 
         Searcher searcher = new Searcher(searchEngine);
@@ -176,7 +176,7 @@ public class SearcherTests {
     public void MustInvokeFinishEventListener() throws InterruptedException {
         AtomicBoolean started = new AtomicBoolean();
         AtomicBoolean finished = new AtomicBoolean();
-        SearchEngine<?> searchEngine = new CancellableSearchEngineFake(() -> started.set(true), null, null, 2000, false);
+        SearchEngine<?,?> searchEngine = new CancellableSearchEngineFake(() -> started.set(true), null, null, 2000, false);
 
         Searcher searcher = new Searcher(searchEngine);
         searcher.addFinishEventListener(() -> finished.set(true));
@@ -195,7 +195,7 @@ public class SearcherTests {
 
     @Test
     public void MustReturnTrueForNewSearchRequest() {
-        SearchEngine<?> searchEngine = Mockito.mock(SearchEngine.class);
+        SearchEngine<?,?> searchEngine = Mockito.mock(SearchEngine.class);
 
         Searcher searcher = new Searcher(searchEngine);
 
@@ -206,7 +206,7 @@ public class SearcherTests {
 
     @Test
     public void MustNotStartNewSearchIfAlreadySearching() {
-        SearchEngine<?> searchEngine = new CancellableSearchEngineFake(null, null, null, 2000, false);
+        SearchEngine<?,?> searchEngine = new CancellableSearchEngineFake(null, null, null, 2000, false);
 
         Searcher searcher = new Searcher(searchEngine);
 
@@ -222,7 +222,7 @@ public class SearcherTests {
 
     @Test
     public void MustStartNewSearchIfPreviousOneIsDone() {
-        SearchEngine<?> searchEngine = new CancellableSearchEngineFake(null, null, null, 2000, false);
+        SearchEngine<?,?> searchEngine = new CancellableSearchEngineFake(null, null, null, 2000, false);
 
         Searcher searcher = new Searcher(searchEngine);
 

@@ -16,9 +16,9 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         java.io.PrintStream outStream = System.out;
-        SearchEngine<Path> searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree,
+        SearchEngine<Path, Path> searchEngine = new FileSearchEngine(PlainFileVisitor::new, Files::walkFileTree,
                 new DefaultPathMatcherFactory(FileSystems.getDefault(), DefaultPathMatcherFactory.SYNTAX_GLOB));
-        SearchResultsConsumer<Path> consumer = new DemoSearchConsumer(outStream);
+        SearchResultsConsumer<Path, Path> consumer = new DemoSearchConsumer(outStream);
         AsyncSearcher searcher = new Searcher(searchEngine);
 
         searchEngine.addItemFoundEventListener(consumer::push);

@@ -9,14 +9,14 @@ import java.util.function.Consumer;
 /**
  * Created by Andrew D on 11/7/2016.
  */
-public abstract class SearchEngineBase<T> implements SearchEngine<T> {
+public abstract class SearchEngineBase<T, S> implements SearchEngine<T, S> {
     private List<Consumer<T>> itemFoundListeners = new ArrayList<>();
-    private List<Consumer<Object>> statusUpdateEventListeners = new ArrayList<>();
+    private List<Consumer<S>> statusUpdateEventListeners = new ArrayList<>();
 
     public final void search(String location, String pattern, CancellationToken cancellationToken) {
-        onStatusUpdate("STARTED");
+        //onStatusUpdate("STARTED"); TODO: implement separate STARTED/FINISHED listeners
         performSearch(location, pattern, cancellationToken);
-        onStatusUpdate("FINISHED");
+        //onStatusUpdate("FINISHED");
     }
 
     protected abstract void performSearch(String location, String pattern, CancellationToken cancellationToken);
@@ -31,12 +31,12 @@ public abstract class SearchEngineBase<T> implements SearchEngine<T> {
         }
     }
 
-    public void addStatusEventListener(Consumer<Object> statusConsumer) {
+    public void addStatusEventListener(Consumer<S> statusConsumer) {
         statusUpdateEventListeners.add(statusConsumer);
     }
 
-    protected void onStatusUpdate(Object status) {
-        for(Consumer<Object> listener : statusUpdateEventListeners) {
+    protected void onStatusUpdate(S status) {
+        for(Consumer<S> listener : statusUpdateEventListeners) {
             listener.accept(status);
         }
     }

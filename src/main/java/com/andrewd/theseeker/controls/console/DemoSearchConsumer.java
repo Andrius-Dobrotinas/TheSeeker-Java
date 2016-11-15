@@ -8,7 +8,7 @@ import java.nio.file.Path;
 /**
  * Created by Andrew D on 11/13/2016.
  */
-public class DemoSearchConsumer implements SearchResultsConsumer<Path> {
+public class DemoSearchConsumer implements SearchResultsConsumer<Path, Path> {
     private PrintStream outStream;
 
     public static final String STATUS_PREFIX = "STATUS: ";
@@ -23,7 +23,7 @@ public class DemoSearchConsumer implements SearchResultsConsumer<Path> {
     }
 
     @Override
-    public void pushStatus(Object status) {
+    public void pushStatus(Path status) {
         outStream.println(STATUS_PREFIX + status);
     }
 }

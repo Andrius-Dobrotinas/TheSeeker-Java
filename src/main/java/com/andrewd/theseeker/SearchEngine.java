@@ -7,8 +7,8 @@ import java.util.function.Consumer;
 /**
  * Created by Andrew D. on 11/11/2016.
  */
-public interface SearchEngine<T> {
+public interface SearchEngine<T, S> {
     void search(String location, String pattern, CancellationToken cancellationToken);
     void addItemFoundEventListener(Consumer<T> listener);
-    void addStatusEventListener(Consumer<Object> statusConsumer);
+    void addStatusEventListener(Consumer<S> statusConsumer);
 }

@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 /**
  * Created by Andrew D on 11/7/2016.
  */
-public class FileSearchEngine extends SearchEngineBase<Path> {
+public class FileSearchEngine extends SearchEngineBase<Path, Path> {
     private FileVisitorFactory fileVisitorFactory;
     private FileTreeWalker fileTreeWalker;
     private PathMatcherFactory pathMatcherFactory;

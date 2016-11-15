@@ -20,7 +20,7 @@ public class DemoSearchUITests {
 
     @Test
     public void MustCallSearchEngine_SearchMethod() throws IOException {
-        SearchEngine<Path> searchEngine = Mockito.mock(SearchEngine.class);
+        SearchEngine<Path, Path> searchEngine = Mockito.mock(SearchEngine.class);
         AsyncSearcher searcher = new Searcher(searchEngine);
 
         InputStreamFake inStream = new InputStreamFake("c:\nasd\n" + DemoSearchUI.EXIT_COMMAND + "\n");
