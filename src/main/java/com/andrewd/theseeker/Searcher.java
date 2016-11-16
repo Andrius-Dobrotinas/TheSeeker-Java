@@ -38,7 +38,6 @@ public class Searcher implements AsyncSearcher {
             try {
                 // TODO: see if I should make Token DI'able via a factory
                 searchEngine.search(location, pattern, new ThreadInterruptionChecker());
-                onFinish();
             }
             catch (Exception e) {
                 onSearchException(e);

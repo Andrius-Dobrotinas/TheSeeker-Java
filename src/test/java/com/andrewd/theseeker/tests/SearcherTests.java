@@ -8,8 +8,6 @@ import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -176,7 +174,7 @@ public class SearcherTests {
     }
 
     @Test
-    public void MustInvokeFinishEventListener() throws InterruptedException {
+    public void MustInvokeFinishEventHandlerWhenSearchFinishes_OnCancellation() throws InterruptedException {
         AtomicBoolean started = new AtomicBoolean();
         AtomicBoolean finished = new AtomicBoolean();
         SearchEngine<?,?> searchEngine = new CancellableSearchEngineFake(() -> started.set(true), null, null, 2000, false);
@@ -191,9 +189,47 @@ public class SearcherTests {
         while(started.get() == false) { }
         System.out.println("Search start reported by the engine");
 
+        // Cancel the task and block until it finishes
         searcher.stop(true);
 
-        Assert.assertTrue("Finish event listener didn't get invoked", finished.get());
+        Assert.assertTrue("Finish event handler hasn't been invoked after a cancelled search", finished.get());
+    }
+
+    @Test
+    public void MustInvokeFinishEventHandlerWhenSearchSuccessfullyFinishes() throws InterruptedException {
+        AtomicBoolean finished = new AtomicBoolean();
+        SearchEngine<?,?> searchEngine = Mockito.mock(SearchEngine.class);
+
+        Searcher searcher = new Searcher(searchEngine);
+        searcher.addFinishEventListener(() -> finished.set(true));
+
+        // Run
+        searcher.searchAsync("location", "pattern");
+
+        // Wait until the task finishes
+        while(searcher.isRunning()) { }
+
+        Assert.assertTrue("Finish event handler hasn't been invoked after successful search", finished.get());
+    }
+
+    @Test
+    public void MustInvokeFinishHandlerEvenInCaseOfSearchEngineException() throws Exception {
+        AtomicBoolean finished = new AtomicBoolean();
+        SearchEngine<?,?> searchEngine = Mockito.mock(SearchEngine.class);
+        Searcher searcher = new Searcher(searchEngine);
+
+        Mockito.doThrow(new Exception())
+                .when(searchEngine).search(Matchers.any(), Matchers.any(), Matchers.any());
+
+        searcher.addFinishEventListener(() -> finished.set(true));
+
+        // Run
+        searcher.searchAsync("","");
+
+        while(searcher.isRunning()) {}
+
+        // Verify
+        Assert.assertTrue("Finish event handler hasn't been invoked on search exception!", finished.get());
     }
 
     @Test
@@ -240,19 +276,15 @@ public class SearcherTests {
     }
 
     @Test
-    public void MustInvokeSearchHandlerOnSearchEngineException() {
+    public void MustInvokeSearchExceptionHandlerWhenSearchEngineThrowsException() throws Exception {
         String message = "My Exception";
         AtomicReference<Exception> exception = new AtomicReference<>();
         SearchEngine<?,?> searchEngine = Mockito.mock(SearchEngine.class);
         Searcher searcher = new Searcher(searchEngine);
         searcher.addSearchExceptionListener(exception::set);
 
-        try {
-            Mockito.doThrow(new CloneNotSupportedException(message))
-                    .when(searchEngine).search(Matchers.any(),Matchers.any(), Matchers.any());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        Mockito.doThrow(new ArithmeticException(message))
+                .when(searchEngine).search(Matchers.any(), Matchers.any(), Matchers.any());
 
         // Run
         searcher.searchAsync("","");
@@ -262,8 +294,30 @@ public class SearcherTests {
         Exception result = exception.get();
 
         // Verify
-        Assert.assertNotEquals("Exception handler didn't fire", null, result);
-        Assert.assertTrue("Wrong exception caught", result instanceof CloneNotSupportedException);
+        Assert.assertNotEquals("Exception handler hasn't been fired", null, result);
+        Assert.assertTrue("Wrong exception caught", result instanceof ArithmeticException);
         Assert.assertEquals("Wrong exception caught (wrong message)", message, result.getMessage());
+    }
+
+    @Test
+    public void MustInvokeSearchExceptionHandlerWhenFinishHandlerThrowsException() throws Exception {
+        AtomicReference<Exception> exception = new AtomicReference<>();
+        SearchEngine<?,?> searchEngine = Mockito.mock(SearchEngine.class);
+        Searcher searcher = new Searcher(searchEngine);
+        searcher.addSearchExceptionListener(exception::set);
+
+        // Mockito doesn't allow throwing an exception from Runnable::run, therefore using this workaround
+        searcher.addFinishEventListener(() -> { int i = 1/0;});
+
+        // Run
+        searcher.searchAsync("","");
+
+        while(searcher.isRunning()) {}
+
+        Exception result = exception.get();
+
+        // Verify
+        Assert.assertNotEquals("Exception handler hasn't been fired", null, result);
+        Assert.assertTrue("Wrong exception caught", result instanceof ArithmeticException);
     }
 }
