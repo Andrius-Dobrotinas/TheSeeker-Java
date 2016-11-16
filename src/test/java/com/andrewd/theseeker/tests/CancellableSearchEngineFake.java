@@ -25,7 +25,10 @@ class CancellableSearchEngineFake extends SearchEngineFakeBase {
             // Simulate some work and delay until checking cancellation token
             if (simulateWorkBeforeCheckingCancellation) {
                 System.out.println("Task: working");
-                for(int j = 0; j < 20000; j++) { }
+                StringBuilder s = new StringBuilder();
+                for(int j = 0; j < 20000000; j++) {
+                    s.append(j);
+                }
             }
 
             if (cancellationToken.isCancellationRequested()) {

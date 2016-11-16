@@ -12,4 +12,6 @@ public interface AsyncSearcher {
     void stop(boolean blockUntilDone);
     void addFinishEventListener(Runnable finishHandler);
     void addSearchExceptionListener(Consumer<Exception> finishHandler);
+    void destroy();
+    boolean isDestroyed();
 }

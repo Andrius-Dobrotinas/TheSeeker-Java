@@ -58,17 +58,41 @@ public class Searcher implements AsyncSearcher {
                 (task.isDone() && searchIsRunning == false));
     }
 
+    /**
+     * Stops currently running search and returns immediately without waiting until the search exits
+     */
     public void stop() {
         if (task != null) {
             task.cancel(true);
         }
     }
 
+    /**
+     * Stops currently running search, if one is running, and, optionally, blocks until search exits.
+     * @param blockUntilDone {@code true} if the method must block until current search exists.
+     *                                   Otherwise will return immediately.
+     */
     public void stop(boolean blockUntilDone) {
         stop();
         if (blockUntilDone) {
             while(isRunning()) { }
         }
+    }
+
+    /**
+     * Shuts down the underlying executor service and stops currently running search, if one is running, blocking until it exits
+     */
+    public void destroy() {
+        if (isDestroyed()) return;
+        executorService.shutdownNow();
+        stop(true);
+    }
+
+    /**
+     * Indicates whether the Searcher has been destroyed and is unusable
+     */
+    public boolean isDestroyed() {
+        return executorService.isShutdown();
     }
 
     public void addFinishEventListener(Runnable finishHandler) {

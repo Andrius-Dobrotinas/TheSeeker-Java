@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
-import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
 
@@ -17,6 +16,20 @@ import java.nio.file.Path;
  * Created by Andrew D on 11/14/2016.
  */
 public class DemoSearchUITests {
+
+    @Test
+    public void MustExit() throws Exception {
+        SearchEngine<Path, Path> searchEngine = Mockito.mock(SearchEngine.class);
+        AsyncSearcher searcher = new Searcher(searchEngine);
+
+        InputStreamFake inStream = new InputStreamFake(DemoSearchUI.EXIT_COMMAND + "\n");
+        PrintStream outStream = Mockito.mock(PrintStream.class);
+
+        SearchInput searchInput = new DemoSearchUI(searcher, inStream, outStream);
+
+        // Run
+        searchInput.run();
+    }
 
     @Test
     public void MustCallSearchEngine_SearchMethod() throws Exception {

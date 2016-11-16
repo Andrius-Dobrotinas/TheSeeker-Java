@@ -320,4 +320,84 @@ public class SearcherTests {
         Assert.assertNotEquals("Exception handler hasn't been fired", null, result);
         Assert.assertTrue("Wrong exception caught", result instanceof ArithmeticException);
     }
+
+    @Test
+    public void IsDestroyed_MustReturnFalseInitially() {
+        SearchEngine<?,?> searchEngine = Mockito.mock(SearchEngine.class);
+        Searcher searcher = new Searcher(searchEngine);
+
+        // Verify
+        Assert.assertFalse("Searcher is in a destroyed state!", searcher.isDestroyed());
+    }
+
+    @Test
+    public void IsDestroyed_MustReturnTrueAfterDestruction() {
+        SearchEngine<?,?> searchEngine = Mockito.mock(SearchEngine.class);
+        Searcher searcher = new Searcher(searchEngine);
+
+        // Run
+        searcher.destroy();
+
+        // Verify
+        Assert.assertTrue("Searcher is hasn't been destroyed!", searcher.isDestroyed());
+    }
+
+    @Test(expected = java.util.concurrent.RejectedExecutionException.class)
+    public void MustNotAllowSearchAfterDestruction() {
+        SearchEngine<?,?> searchEngine = new SleepingSearchEngineFake(1000, null, null);
+        Searcher searcher = new Searcher(searchEngine);
+
+        // Run
+        searcher.destroy();
+        searcher.searchAsync("","");
+    }
+
+    @Test
+    public void Destroy_MustCancelCurrentTaskAndBlockUntilTaskFinishes() {
+        AtomicBoolean started = new AtomicBoolean();
+        AtomicBoolean finished = new AtomicBoolean();
+        AtomicBoolean cancelled = new AtomicBoolean();
+        SearchEngine<?,?> searchEngine = new CancellableSearchEngineFake(() -> started.set(true), null,
+                () -> cancelled.set(true), 90000000, true);
+
+        Searcher searcher = new Searcher(searchEngine);
+        searcher.addFinishEventListener(() -> finished.set(true));
+
+        // Run
+        searcher.searchAsync("location", "pattern");
+
+        // Wait until the task confirms it has started
+        while(started.get() == false) { }
+        System.out.println("Search start reported by the engine");
+
+        // Run
+        searcher.destroy();
+
+        Assert.assertTrue("The task hasn't processed cancellation!", cancelled.get());
+        Assert.assertTrue("The task did't finish!", finished.get());
+    }
+
+    @Test
+    public void Destroy_MustPutSearcherIntoDestroyedStateWhenCurrentlyRunningTaskFinishes() {
+        AtomicBoolean started = new AtomicBoolean();
+        AtomicBoolean finished = new AtomicBoolean();
+        AtomicBoolean cancelled = new AtomicBoolean();
+        SearchEngine<?,?> searchEngine = new CancellableSearchEngineFake(() -> started.set(true), null,
+                () -> cancelled.set(true), 1000000, true);
+
+        Searcher searcher = new Searcher(searchEngine);
+        searcher.addFinishEventListener(() -> finished.set(true));
+
+        // Run
+        searcher.searchAsync("location", "pattern");
+
+        // Wait until the task confirms it has started
+        while(started.get() == false) { }
+        System.out.println("Search start reported by the engine");
+
+        // Run
+        searcher.destroy();
+
+        Assert.assertTrue("Searcher hasn't been destroyed!", searcher.isDestroyed());
+    }
 }

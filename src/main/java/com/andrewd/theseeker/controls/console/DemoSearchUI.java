@@ -17,6 +17,7 @@ public class DemoSearchUI implements SearchInput {
     private final AsyncSearcher searcher;
     private final InputStream inStream;
     private final PrintStream outStream;
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor(); // TODO: see if I should DI it
     private volatile boolean finished;
 
     public final static String EXIT_COMMAND = "exit";
@@ -55,18 +56,16 @@ public class DemoSearchUI implements SearchInput {
                 do {
                     outStream.println("\nEnter location to search");
                     location = input.nextLine();
-                    if (isExit(location)) return;
+                    if (checkExit(location)) return;
                 } while(location.isEmpty());
 
                 outStream.println("Enter search pattern");
                 pattern = input.nextLine();
-                if (isExit(location)) return;
+                if (checkExit(location)) return;
             }
 
             searcher.searchAsync(location, pattern);
 
-            // Not DI'ing the executor
-            ExecutorService executorService = Executors.newSingleThreadExecutor();
             Future task = executorService.submit(() -> listenForCancellation(inStream));
 
             // This performs less calculations than polling searcher.isRunning()
@@ -77,8 +76,19 @@ public class DemoSearchUI implements SearchInput {
         }
     }
 
-    private boolean isExit(String command) {
-        return command.equalsIgnoreCase(EXIT_COMMAND);
+    private boolean checkExit(String command) {
+        if (command.equalsIgnoreCase(EXIT_COMMAND)) {
+            outStream.println("Shutting down...");
+            destroy();
+            outStream.println("Done!");
+            return true;
+        }
+        return false;
+    }
+
+    private void destroy() {
+        executorService.shutdownNow();
+        searcher.destroy();
     }
 
     private void listenForCancellation(InputStream inStream) {
