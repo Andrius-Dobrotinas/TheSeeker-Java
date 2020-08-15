@@ -1,6 +1,8 @@
 # TheSeeker-Java
 A Java version of the file search tool that I originally wrote in C# (https://github.com/Andrius-Dobrotinas/TheSeeker)
 
-This goal of this project is, first of all, for me to do some real life coding in Java, and, second, to practice Test Driven Development.
+The goal of this project was:
+* do some real-life dev'ment in Java
+* practice test-driven development.
 
-TODO: write GUI components.
+So far, it's command-line only.
